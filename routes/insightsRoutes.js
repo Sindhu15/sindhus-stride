@@ -1,5 +1,5 @@
 const Router = require('koa-router');
-const insightController = require('../controllers/insightController');
+const insightController = require('../controllers/InsightController');
 
 const router = new Router();
 
