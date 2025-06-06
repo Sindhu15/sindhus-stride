@@ -8,10 +8,22 @@
     "marked": "^15.0.12"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
   },
   "scripts": {
     "start-dev": "nodemon app.js",
-    "start": "node app.js"
+    "start": "node app.js",
+    "format": "prettier --write ."
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,json,css,md,html}": "prettier --write"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }

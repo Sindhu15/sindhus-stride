@@ -98,8 +98,8 @@ class InsightController {
       ctx.type = 'html';
       ctx.body = `
          <!DOCTYPE html>
-  <html lang="en">
-  <head>
+            <html lang="en">
+        <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Stride Insight</title>
     <style>

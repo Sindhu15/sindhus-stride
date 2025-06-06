@@ -1,105 +1,115 @@
 function formatPace(movingTimeSec, distanceMeters) {
-    const paceSecPerKm = movingTimeSec / (distanceMeters / 1000); // seconds/km
-    const min = Math.floor(paceSecPerKm / 60);
-    const sec = Math.round(paceSecPerKm % 60);
-    return `${min}:${sec.toString().padStart(2, '0')}`;
+  const paceSecPerKm = movingTimeSec / (distanceMeters / 1000); // seconds/km
+  const min = Math.floor(paceSecPerKm / 60);
+  const sec = Math.round(paceSecPerKm % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+}
+
+function formatPaceChange(secondsDiff) {
+  const sign = secondsDiff < 0 ? "-" : "";
+  const absSec = Math.abs(secondsDiff);
+  const min = Math.floor(absSec / 60);
+  const sec = Math.round(absSec % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}/km`;
+}
+
+function prepareRun(run, referenceRun = null) {
+  const distanceKm = run.distance / 1000;
+  const paceSecPerKm = run.moving_time / distanceKm;
+  const paceFormatted = formatPace(run.moving_time, run.distance);
+
+  let change = "-";
+
+  if (referenceRun) {
+    const refDistanceKm = referenceRun.distance / 1000;
+    const refPace = referenceRun.moving_time / refDistanceKm;
+    const paceDiff = paceSecPerKm - refPace;
+
+    change =
+      paceDiff === 0
+        ? "No change"
+        : paceDiff < 0
+          ? `Faster by ${formatPaceChange(paceDiff)}`
+          : `Slower by ${formatPaceChange(paceDiff)}`;
   }
 
-  function formatPaceChange(secondsDiff) {
-    const sign = secondsDiff < 0 ? '-' : '';
-    const absSec = Math.abs(secondsDiff);
-    const min = Math.floor(absSec / 60);
-    const sec = Math.round(absSec % 60);
-    return `${min}:${sec.toString().padStart(2, '0')}/km`;
-  }
-  
-  function prepareRun(run, referenceRun = null) {
-    const distanceKm = run.distance / 1000;
-    const paceSecPerKm = run.moving_time / distanceKm;
-    const paceFormatted = formatPace(run.moving_time, run.distance);
-  
-    let change = "-";
-  
-    if (referenceRun) {
-        const refDistanceKm = referenceRun.distance / 1000;
-        const refPace = referenceRun.moving_time / refDistanceKm;
-        const paceDiff = paceSecPerKm - refPace;
-      
-        change = paceDiff === 0
-          ? "No change"
-          : paceDiff < 0
-            ? `Faster by ${formatPaceChange(paceDiff)}`
-            : `Slower by ${formatPaceChange(paceDiff)}`;
-      }
-  
-    return {
-      date: new Date(run.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      distance: distanceKm.toFixed(1),
-      pace: paceFormatted,
-      change
-    };
-  }
-  
-  
-  function getQuickChartUrl(firstRun, latestRun, type = 'pace') {
-    const labels = [firstRun.date, latestRun.date];
-  
-    const data = type === 'pace'
-      ? [parseFloat(firstRun.pace.replace(':', '.')) || 0, parseFloat(latestRun.pace.replace(':', '.')) || 0]
-      : [parseFloat(firstRun.distance) || 0, parseFloat(latestRun.distance) || 0];
-  
-    const chartConfig = {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: type === 'pace' ? 'Pace (min/km)' : 'Distance (km)',
-            data,
-            fill: false,
-            tension: 0.3,
-            borderColor: type === 'pace' ? 'rgba(75,192,192,1)' : 'rgba(255,99,132,1)',
-            backgroundColor: 'white'
-          }
+  return {
+    date: new Date(run.start_date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    distance: distanceKm.toFixed(1),
+    pace: paceFormatted,
+    change,
+  };
+}
+
+function getQuickChartUrl(firstRun, latestRun, type = "pace") {
+  const labels = [firstRun.date, latestRun.date];
+
+  const data =
+    type === "pace"
+      ? [
+          parseFloat(firstRun.pace.replace(":", ".")) || 0,
+          parseFloat(latestRun.pace.replace(":", ".")) || 0,
         ]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: type === 'pace' ? 'Pace Progress' : 'Distance Progress'
-          }
+      : [
+          parseFloat(firstRun.distance) || 0,
+          parseFloat(latestRun.distance) || 0,
+        ];
+
+  const chartConfig = {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: type === "pace" ? "Pace (min/km)" : "Distance (km)",
+          data,
+          fill: false,
+          tension: 0.3,
+          borderColor:
+            type === "pace" ? "rgba(75,192,192,1)" : "rgba(255,99,132,1)",
+          backgroundColor: "white",
         },
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    };
-  
-    const encoded = encodeURIComponent(JSON.stringify(chartConfig));
-    return `https://quickchart.io/chart?c=${encoded}`;
-  }
-  
-  
+      ],
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: type === "pace" ? "Pace Progress" : "Distance Progress",
+        },
+      },
+      scales: {
+        y: { beginAtZero: true },
+      },
+    },
+  };
 
-  function getConfidenceLevelText(firstRun, latestRun) {
-    const firstPace = firstRun.moving_time / (firstRun.distance / 1000);
-    const latestPace = latestRun.moving_time / (latestRun.distance / 1000);
-    const diff = firstPace - latestPace;
-  
-    if (diff > 30) {
-      return "You’ve made strong progress. Your pace has significantly improved — you're running with more confidence!";
-    } else if (diff > 10) {
-      return "You’re becoming more consistent and building confidence with every run.";
-    } else if (diff > -5) {
-      return "Even with a small dip in pace, your effort and commitment show you’re growing more confident.";
-    } else {
-      return "You're still early in your journey — keep showing up, and confidence will follow!";
-    }
-  }
+  const encoded = encodeURIComponent(JSON.stringify(chartConfig));
+  return `https://quickchart.io/chart?c=${encoded}`;
+}
 
-  // Generates a Running Journey section with longest run, fastest pace, total runs, and a line chart of all runs
+function getConfidenceLevelText(firstRun, latestRun) {
+  const firstPace = firstRun.moving_time / (firstRun.distance / 1000);
+  const latestPace = latestRun.moving_time / (latestRun.distance / 1000);
+  const diff = firstPace - latestPace;
+
+  if (diff > 30) {
+    return "You’ve made strong progress. Your pace has significantly improved — you're running with more confidence!";
+  } else if (diff > 10) {
+    return "You’re becoming more consistent and building confidence with every run.";
+  } else if (diff > -5) {
+    return "Even with a small dip in pace, your effort and commitment show you’re growing more confident.";
+  } else {
+    return "You're still early in your journey — keep showing up, and confidence will follow!";
+  }
+}
+
+// Generates a Running Journey section with longest run, fastest pace, total runs, and a line chart of all runs
 function generateRunningJourneySection(allRuns) {
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-IN", {
@@ -119,7 +129,9 @@ function generateRunningJourneySection(allRuns) {
   if (!allRuns || allRuns.length === 0) return "";
 
   const totalRuns = allRuns.length;
-  const longestRun = allRuns.reduce((a, b) => (a.distance > b.distance ? a : b));
+  const longestRun = allRuns.reduce((a, b) =>
+    a.distance > b.distance ? a : b,
+  );
   const fastestRun = allRuns.reduce((a, b) => {
     const paceA = a.moving_time / (a.distance / 1000);
     const paceB = b.moving_time / (b.distance / 1000);
@@ -156,7 +168,7 @@ function generateRunningJourneySection(allRuns) {
   };
 
   const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(
-    JSON.stringify(chartConfig)
+    JSON.stringify(chartConfig),
   )}`;
 
   return `
@@ -183,7 +195,7 @@ function generateProgressTable(firstRun, latestRun) {
     const paceSecPerKm = time / (dist / 1000);
     const min = Math.floor(paceSecPerKm / 60);
     const sec = Math.round(paceSecPerKm % 60);
-    return `${min}:${sec.toString().padStart(2, '0')}`;
+    return `${min}:${sec.toString().padStart(2, "0")}`;
   };
 
   const firstDistanceKm = Number(firstRun.distance) / 1000;
@@ -217,5 +229,11 @@ function generateProgressTable(firstRun, latestRun) {
   `;
 }
 
-module.exports = { formatPace, prepareRun, getQuickChartUrl, getConfidenceLevelText, generateRunningJourneySection, generateProgressTable };
-  
+module.exports = {
+  formatPace,
+  prepareRun,
+  getQuickChartUrl,
+  getConfidenceLevelText,
+  generateRunningJourneySection,
+  generateProgressTable,
+};

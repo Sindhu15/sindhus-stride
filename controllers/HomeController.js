@@ -1,7 +1,7 @@
 class HomeController {
-    async landingPage(ctx) {
-      ctx.type = 'html';
-      ctx.body = `
+  async landingPage(ctx) {
+    ctx.type = "html";
+    ctx.body = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -45,8 +45,7 @@ class HomeController {
         </body>
         </html>
       `;
-    }
   }
-  
-  module.exports = new HomeController();
-  
+}
+
+module.exports = new HomeController();
