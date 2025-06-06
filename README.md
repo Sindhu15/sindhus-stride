@@ -27,9 +27,9 @@ I recently picked up running, and hitting my first non-stop 10K was a milestone 
 ## Screenshots
 
 <p align="left">
-  <img src="./screenshots/landing.png" alt="App Preview" width="50"/>
-  <img src="./screenshots/authorize.png" alt="App Preview" width="50"/>
-  <img src="./screenshots/report.png" alt="App Preview" width="50"/>
+  <img src="./screenshots/landing.png" alt="App Preview" width="140"/>
+  <img src="./screenshots/authorize.png" alt="App Preview" width="140"/>
+  <img src="./screenshots/report.png" alt="App Preview" width="140"/>
 </p>
 
 ## Tech Stack
