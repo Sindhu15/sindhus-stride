@@ -139,6 +139,7 @@ function generateRunningJourneySection(allRuns) {
   });
 
   const longestRunText = `${(longestRun.distance / 1000).toFixed(2)} km on ${formatDate(longestRun.start_date)}`;
+  const totalDistanceKm = (allRuns.reduce((acc, run) => acc + run.distance, 0) / 1000).toFixed(1);
   const fastestRunText = `${formatPace(fastestRun.moving_time, fastestRun.distance)} on ${formatDate(fastestRun.start_date)}`;
 
   const labels = allRuns.map((r) => formatDate(r.start_date));
@@ -174,7 +175,7 @@ function generateRunningJourneySection(allRuns) {
   return `
     <div>
       <h4>Your Running Journey So Far 🛤️</h4>
-      <p>🏃‍♀️ <strong>Total Runs:</strong> ${totalRuns} — Every step counts, and you've taken many!</p>
+      <p>🏃‍♀️ <strong>Total Runs:</strong> ${totalRuns} covering ${totalDistanceKm} kms — Every step counts, and you've taken many!</p>
       <p>🏅 <strong>Longest Run:</strong> ${longestRunText}</p>
       <p>⚡ <strong>Fastest Pace:</strong> ${fastestRunText}</p>
       <img src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 1em; border-radius: 8px;" />
