@@ -8,12 +8,6 @@ Built with love to celebrate every runner’s journey — from their very first 
 
 I recently picked up running, and hitting my first non-stop 10K was a milestone I’ll never forget. When I compared it with my very first Strava run, I realized how far I had come and it made me truly happy. This app is built so that other runners could feel that same joy in their progress.
 
-## Try it out here
-
-**Link:** [https://sindhus-stride.onrender.com/](https://sindhus-stride.onrender.com/)  
-**Pre-requisite:** A Strava account with logged runs
----
-
 ## Features
 
 - **Strava OAuth Integration** — securely connect your Strava account
@@ -31,6 +25,12 @@ I recently picked up running, and hitting my first non-stop 10K was a milestone 
   <img src="./screenshots/authorize.png" alt="App Preview" width="160"/>
   <img src="./screenshots/report.png" alt="App Preview" width="160"/>
 </p>
+
+## Try it out here
+
+- **Link:** [https://sindhus-stride.onrender.com/](https://sindhus-stride.onrender.com/)  
+- **Pre-requisite:** A Strava account with logged runs
+---
 
 ## Tech Stack
 
