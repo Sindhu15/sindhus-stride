@@ -105,59 +105,53 @@ class InsightController {
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
              Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-             margin: 20px; color: #333; }
+             margin: 10px 15px; color: #333; }
       table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
       th, td { border: 1px solid #ddd; padding: 0.75rem; text-align: center; }
       th { background-color: #f4f4f4; }
-      img { max-width: 100%; margin: 1rem 0; }
+      img { max-width: 100%; margin: 2px 0; }
       a.share-btn {
         display: inline-block; padding: 10px 20px; background: #25d366; color: white;
         text-decoration: none; border-radius: 5px; margin-top: 1rem;
       }
-      .chart-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .chart-row img {
-    flex: 1;
-    max-width: 48%;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    background: #fff;
-  }
+    .chart-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chart-row img {
+      flex: 1;
+      max-width: 48%;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fff;
+    }
     .screenshot-banner {
-  background: #fef7dc;
-  border-left: 4px solid #fbc02d;
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  font-size: 1rem;
-  border-radius: 8px;
-}
+      background: #fef7dc;
+      border-left: 4px solid #fbc02d;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+    }
     </style>
   </head>
   <body>
-      <div style="display: flex; align-items: center; gap: 1em; margin-top: 20px; margin-bottom: 30px;">
+      <div style="display: flex; align-items: center; gap: 1em;">
         <img src="${avatar}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
-
         <div>
-        <h3 style="margin: 0; font-size: 1.5em;">
-          ${name}’s Progress Report 🏃‍♀️✨
-        </h3>
-        <p style="margin: 4px 0 0; color: #888; font-size: 0.85em;">
-          <strong>Powered by Sindhu’s Stride</strong>
-        </p>
-  </div>
-</div>
+          <h3 style="margin: 0; font-size: 1.2em;">
+            ${name}’s Progress Report 🏃‍♀️✨
+          </h3>
+          <p style="margin: 4px 0 0; color: #888; font-size: 0.85em;">
+            <strong>Powered by Sindhu’s Stride</strong>
+          </p>
+        </div>
+      </div>
 
     ${runTable}
-    <h3 style="margin-top: 1.5rem;">Progress Charts</h3>
-    <div class="chart-row">
-      <img src="${paceChartUrl}" alt="Pace Chart" />
-      <img src="${distanceChartUrl}" alt="Distance Chart" />
-    </div>
     <p><strong>Reflection:</strong> ${confidenceText}</p>
     <p>${markdownInsight}</p>
     <div>
@@ -179,3 +173,9 @@ class InsightController {
   
 
 module.exports = new InsightController();
+
+
+//  <div class="chart-row">
+//       <img src="${paceChartUrl}" alt="Pace Chart" />
+//       <img src="${distanceChartUrl}" alt="Distance Chart" />
+//     </div>

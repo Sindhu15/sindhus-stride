@@ -160,8 +160,8 @@ function generateRunningJourneySection(allRuns) {
   )}`;
 
   return `
-    <div style="margin-top: 30px;">
-      <h2>Your Running Journey So Far 🛤️</h2>
+    <div>
+      <h4>Your Running Journey So Far 🛤️</h4>
       <p>🏃‍♀️ <strong>Total Runs:</strong> ${totalRuns} — Every step counts, and you've taken many!</p>
       <p>🏅 <strong>Longest Run:</strong> ${longestRunText}</p>
       <p>⚡ <strong>Fastest Pace:</strong> ${fastestRunText}</p>
@@ -190,7 +190,7 @@ function generateProgressTable(firstRun, latestRun) {
   const latestDistanceKm = Number(latestRun.distance) / 1000;
 
   return `
-    <table style="width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 20px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.95em;">
       <thead>
         <tr style="background-color: #f4f4f4;">
           <th style="text-align: left; padding: 10px;">Run</th>

@@ -17,7 +17,7 @@ class HomeController {
               color: #333;
             }
             h1 { font-size: 2rem; }
-            p { font-size: 1.1rem; margin: 1rem 0; }
+            p { font-size: 1.1rem; margin: 1rem 0; line-height: 1.5;}
             .cta {
               background: #fc4c02;
               color: white;
@@ -27,13 +27,20 @@ class HomeController {
               border-radius: 8px;
               display: inline-block;
               margin-top: 2rem;
+              border-radius: 999px;
             }
           </style>
         </head>
         <body>
-          <h1>🏃‍♀️ Welcome to Sindhu’s Stride</h1>
+          <h2>🏃‍♀️ Welcome to Sindhu’s Stride</h2>
+          <div style="background: #fffbe6; border-radius: 12px; padding: 2rem; margin: 2rem auto; max-width: 600px;box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);">
           <p>See how far you’ve come in your running journey. Your runs have a story. Let’s tell it.</p>
-          <p>Authorize with Strava and get your report you can share!</p>
+          <p>Authorize with Strava and get a personalized progress report you can share with friends or your coach!</p>
+          <p>This is a fun, privacy-first app. We don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
+           <p style="font-size: 1rem; margin-bottom: 2rem;">
+            🙌 Good vibes only ❤️💪😊
+          </p>
+          </div>
           <a class="cta" href="/auth/strava">Connect with Strava</a>
         </body>
         </html>
