@@ -18,4 +18,15 @@ async function fetchActivities(accessToken) {
   return response.data.filter(a => a.type === 'Run');
 }
 
-module.exports = { exchangeCodeForToken, fetchActivities };
+async function getAthleteProfile(accessToken) {
+  const response = await axios.get('https://www.strava.com/api/v3/athlete', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return {
+    name: response.data.firstname,
+    avatar: response.data.profile,
+  };
+}
+
+
+module.exports = { exchangeCodeForToken, fetchActivities, getAthleteProfile };

@@ -1,6 +1,7 @@
 const { marked } = require('marked');
 const { openaiInsightFromRuns } = require('../services/aiService');
-const { prepareRun, getQuickChartUrl, getConfidenceLevelText } = require('../utils/formatUtils');
+const { prepareRun, getQuickChartUrl, getConfidenceLevelText, generateRunningJourneySection, generateProgressTable } = require('../utils/formatUtils');
+const { getAthleteProfile } = require('../services/stravaService');
 
 class InsightController {
   async generateInsight(ctx) {
@@ -57,7 +58,10 @@ class InsightController {
     try {
       // Fetch runs from Strava service
       const activities = await require('../services/stravaService').fetchActivities(accessToken);
+      const { name, avatar } = await getAthleteProfile(accessToken);
+
       const runs = activities.filter(a => a.type === 'Run');
+      const journeySection = generateRunningJourneySection(runs);
   
       if (runs.length < 2) {
         ctx.status = 400;
@@ -89,36 +93,7 @@ class InsightController {
       const plainTextInsight = markdownInsight.replace(/<\/?[^>]+(>|$)/g, "");
       const confidenceText = getConfidenceLevelText(firstRunRaw, latestRunRaw);
 
-      const runTable = `
-  <table>
-    <thead>
-      <tr>
-        <th>Run</th>
-        <th>Date</th>
-        <th>Distance (km)</th>
-        <th>Pace (min/km)</th>
-        <th>Change</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td>${firstRun.date}</td>
-        <td>${firstRun.distance}</td>
-        <td>${firstRun.pace}</td>
-        <td>-</td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>${latestRun.date}</td>
-        <td>${latestRun.distance}</td>
-        <td>${latestRun.pace}</td>
-        <td>${latestRun.change}</td>
-      </tr>
-    </tbody>
-  </table>
-`;
-
+      const runTable = generateProgressTable(firstRunRaw, latestRunRaw);
   
       ctx.type = 'html';
       ctx.body = `
@@ -164,7 +139,19 @@ class InsightController {
     </style>
   </head>
   <body>
-    <h2>Your Running Progress</h2>
+      <div style="display: flex; align-items: center; gap: 1em; margin-top: 20px; margin-bottom: 30px;">
+        <img src="${avatar}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
+
+        <div>
+        <h3 style="margin: 0; font-size: 1.5em;">
+          ${name}’s Progress Report 🏃‍♀️✨
+        </h3>
+        <p style="margin: 4px 0 0; color: #888; font-size: 0.85em;">
+          <strong>Powered by Sindhu’s Stride</strong>
+        </p>
+  </div>
+</div>
+
     ${runTable}
     <h3 style="margin-top: 1.5rem;">Progress Charts</h3>
     <div class="chart-row">
@@ -173,7 +160,9 @@ class InsightController {
     </div>
     <p><strong>Reflection:</strong> ${confidenceText}</p>
     <p>${markdownInsight}</p>
-    <a class="share-btn" href="https://wa.me/?text=${encodeURIComponent(markdownInsight)}" target="_blank" rel="noopener noreferrer">Share on WhatsApp</a>
+    <div>
+      ${journeySection}
+    </div>
     <div class="screenshot-banner">
     📸 Want to inspire others? Take a screenshot and share in the WhatsApp group!
     </div>
