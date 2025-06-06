@@ -32,8 +32,8 @@ class HomeController {
         </head>
         <body>
           <h1>🏃‍♀️ Welcome to Sindhu’s Stride</h1>
-          <p>See how far you’ve come in your running journey.</p>
-          <p>Authorize with Strava and get a personalized insight you can share!</p>
+          <p>See how far you’ve come in your running journey. Your runs have a story. Let’s tell it.</p>
+          <p>Authorize with Strava and get your report you can share!</p>
           <a class="cta" href="/auth/strava">Connect with Strava</a>
         </body>
         </html>
