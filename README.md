@@ -12,13 +12,6 @@ I recently picked up running, and hitting my first non-stop 10K was a milestone 
 
 **Link:** [https://sindhus-stride.onrender.com/](https://sindhus-stride.onrender.com/)  
 **Pre-requisite:** A Strava account with logged runs
-
-## Screenshots
-
-![Landing page](./screenshots/landing.png)
-![Authorize](./screenshots/authorize.png)
-![Report](./screenshots/report.png)
-
 ---
 
 ## Features
@@ -30,6 +23,14 @@ I recently picked up running, and hitting my first non-stop 10K was a milestone 
 - **Privacy First** — no data stored; all insights are generated client-side
 
 ---
+
+## Screenshots
+
+<p align="left">
+  <img src="./screenshots/landing.png" alt="App Preview" width="50"/>
+  <img src="./screenshots/authorize.png" alt="App Preview" width="50"/>
+  <img src="./screenshots/report.png" alt="App Preview" width="50"/>
+</p>
 
 ## Tech Stack
 
