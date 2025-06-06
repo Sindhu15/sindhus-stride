@@ -13,6 +13,12 @@ I recently picked up running, and hitting my first non-stop 10K was a milestone 
 **Link:** [https://sindhus-stride.onrender.com/](https://sindhus-stride.onrender.com/)  
 **Pre-requisite:** A Strava account with logged runs
 
+## Screenshots
+
+![Landing page](./screenshots/landing.png)
+![Authorize](./screenshots/authorize.png)
+![Report](./screenshots/report.png)
+
 ---
 
 ## Features
