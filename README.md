@@ -28,8 +28,9 @@ I recently picked up running, and hitting my first non-stop 10K was a milestone 
 
 ## Try it out here
 
-- **Link:** [https://sindhus-stride.onrender.com/](https://sindhus-stride.onrender.com/)  
+- **Link:** [https://sindhus-stride.onrender.com/](https://sindhus-stride.onrender.com/)
 - **Pre-requisite:** A Strava account with logged runs
+
 ---
 
 ## Tech Stack

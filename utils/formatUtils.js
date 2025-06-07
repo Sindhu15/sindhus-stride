@@ -146,7 +146,9 @@ function generateRunningJourneySection(allRuns) {
   });
 
   const longestRunText = `${(longestRun.distance / 1000).toFixed(1)}K on <strong>${formatDate(longestRun.start_date)}</strong>`;
-  const totalDistanceKm = (allRuns.reduce((acc, run) => acc + run.distance, 0) / 1000).toFixed(1);
+  const totalDistanceKm = (
+    allRuns.reduce((acc, run) => acc + run.distance, 0) / 1000
+  ).toFixed(1);
   const fastestRunText = `${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km on <strong>${formatDate(fastestRun.start_date)}</strong>`;
 
   const labels = allRuns.map((r) => formatDate(r.start_date));
@@ -245,5 +247,5 @@ module.exports = {
   getConfidenceLevelText,
   generateRunningJourneySection,
   generateProgressTable,
-  getISTTime
+  getISTTime,
 };

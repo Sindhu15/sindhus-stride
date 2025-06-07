@@ -1,8 +1,8 @@
-const { getISTTime } = require('../utils/formatUtils');
+const { getISTTime } = require("../utils/formatUtils");
 
 class HomeController {
   async landingPage(ctx) {
-    console.log("Rendering landing page");
+    console.log(`Rendering landing page at ${getISTTime()}`);
     ctx.type = "html";
     ctx.body = `
         <!DOCTYPE html>

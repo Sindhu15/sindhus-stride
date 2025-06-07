@@ -1,23 +1,33 @@
-const { marked } = require('marked');
-const { openaiInsightFromRuns } = require('../services/aiService');
-const { prepareRun, getQuickChartUrl, getConfidenceLevelText, generateRunningJourneySection, generateProgressTable, getISTTime } = require('../utils/formatUtils');
-const { getAthleteProfile } = require('../services/stravaService');
+const { marked } = require("marked");
+const { openaiInsightFromRuns } = require("../services/aiService");
+const {
+  prepareRun,
+  getQuickChartUrl,
+  getConfidenceLevelText,
+  generateRunningJourneySection,
+  generateProgressTable,
+  getISTTime,
+} = require("../utils/formatUtils");
+const { getAthleteProfile } = require("../services/stravaService");
 
 class InsightController {
   async generateInsight(ctx) {
     const { firstRun, latestRun } = ctx.request.body;
     if (!firstRun || !latestRun) {
       ctx.status = 400;
-      ctx.body = 'firstRun and latestRun are required in body';
+      ctx.body = "firstRun and latestRun are required in body";
       return;
     }
     try {
       const summary = await openaiInsightFromRuns(firstRun, latestRun);
       ctx.body = { summary };
     } catch (error) {
-      console.error('Error generating insight:', error.response?.data || error.message);
+      console.error(
+        "Error generating insight:",
+        error.response?.data || error.message,
+      );
       ctx.status = 500;
-      ctx.body = 'Error generating insight';
+      ctx.body = "Error generating insight";
     }
   }
 
@@ -25,78 +35,94 @@ class InsightController {
     const accessToken = ctx.query.token;
     if (!accessToken) {
       ctx.status = 400;
-      ctx.body = 'Access token is required';
+      ctx.body = "Access token is required";
       return;
     }
     try {
-      const activities = await require('../services/stravaService').fetchActivities(accessToken);
-      const runs = activities.filter(a => a.type === 'Run');
+      const activities =
+        await require("../services/stravaService").fetchActivities(accessToken);
+      const runs = activities.filter((a) => a.type === "Run");
       if (runs.length < 2) {
-        ctx.body = 'Not enough runs to generate insight.';
+        ctx.body = "Not enough runs to generate insight.";
         return;
       }
-      const sortedRuns = runs.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+      const sortedRuns = runs.sort(
+        (a, b) => new Date(a.start_date) - new Date(b.start_date),
+      );
       const first = sortedRuns[0];
       const latest = sortedRuns[sortedRuns.length - 1];
       const summary = await openaiInsightFromRuns(first, latest);
       ctx.body = { summary };
     } catch (error) {
-      console.error('Error generating combined insight:', error.response?.data || error.message);
+      console.error(
+        "Error generating combined insight:",
+        error.response?.data || error.message,
+      );
       ctx.status = 500;
-      ctx.body = 'Error generating insight.';
+      ctx.body = "Error generating insight.";
     }
   }
-  
+
   async getInsightHtml(ctx) {
     const accessToken = ctx.query.token;
     if (!accessToken) {
       ctx.status = 400;
-      ctx.body = 'Access token is required';
+      ctx.body = "Access token is required";
       return;
     }
-    
+
     try {
       console.log(`An Athlete generated their report at ${getISTTime()}`);
       // Fetch runs from Strava service
-      const activities = await require('../services/stravaService').fetchActivities(accessToken);
+      const activities =
+        await require("../services/stravaService").fetchActivities(accessToken);
       const { name, avatar } = await getAthleteProfile(accessToken);
 
-      const runs = activities.filter(a => a.type === 'Run');
+      const runs = activities.filter((a) => a.type === "Run");
       const journeySection = generateRunningJourneySection(runs);
-  
+
       if (runs.length < 2) {
         ctx.status = 400;
-        ctx.body = 'Not enough runs to generate insight.';
+        ctx.body = "Not enough runs to generate insight.";
         return;
       }
-  
+
       // Sort runs by date ascending
-      const sortedRuns = runs.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+      const sortedRuns = runs.sort(
+        (a, b) => new Date(a.start_date) - new Date(b.start_date),
+      );
       const firstRunRaw = sortedRuns[0];
       const latestRunRaw = sortedRuns[sortedRuns.length - 1];
-  
+
       // Prepare runs for formatting/chart
       const firstRun = prepareRun(firstRunRaw);
       const latestRun = prepareRun(latestRunRaw, firstRunRaw);
-  
+
       // Generate insight markdown from AI
-      const markdownInsight = await openaiInsightFromRuns(firstRunRaw, latestRunRaw);
-  
+      const markdownInsight = await openaiInsightFromRuns(
+        firstRunRaw,
+        latestRunRaw,
+      );
+
       // Convert markdown to HTML
       const insightHtml = marked(markdownInsight);
-  
+
       // Generate QuickChart URL
       const chartUrl = getQuickChartUrl(firstRun, latestRun);
-      const paceChartUrl = getQuickChartUrl(firstRun, latestRun, 'pace');
-      const distanceChartUrl = getQuickChartUrl(firstRun, latestRun, 'distance'); 
-  
+      const paceChartUrl = getQuickChartUrl(firstRun, latestRun, "pace");
+      const distanceChartUrl = getQuickChartUrl(
+        firstRun,
+        latestRun,
+        "distance",
+      );
+
       // Prepare plain text for WhatsApp sharing
       const plainTextInsight = markdownInsight.replace(/<\/?[^>]+(>|$)/g, "");
       const confidenceText = getConfidenceLevelText(firstRunRaw, latestRunRaw);
 
       const runTable = generateProgressTable(firstRunRaw, latestRunRaw);
-      
-      ctx.type = 'html';
+
+      ctx.type = "html";
       ctx.body = `
          <!DOCTYPE html>
             <html lang="en">
@@ -138,71 +164,71 @@ class InsightController {
       margin-bottom: 20px;
       font-size: 1rem;
       border-radius: 8px;
+      cursor: pointer;
     }
+  .report-wrapper {
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  max-width: 700px;
+  margin: 0 auto;
+}
     </style>
   </head>
-  <body id="report">
-      <div style="display: flex; align-items: center; gap: 1em;">
-        <img src="${avatar}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
-        <div>
-          <h3 style="margin: 0; font-size: 1.2em;">
-            ${name}’s Progress Report 🏃‍♀️✨
-          </h3>
-          <p style="margin: 4px 0 0; color: #888; font-size: 0.85em;">
-            <strong>Powered by Sindhu’s Stride</strong>
-          </p>
-        </div>
+  <body>
+    <div id="report" class="report-wrapper">
+    <div style="display: flex; align-items: center; gap: 1em;">
+      <img src="${avatar}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
+      <div>
+        <h3 style="margin: 0; font-size: 1.2em;">
+          ${name}’s Progress Report 🏃‍♀️✨
+        </h3>
+        <p style="margin: 4px 0 0; color: #888; font-size: 0.85em;">
+          <strong>Powered by Sindhu’s Stride</strong>
+        </p>
       </div>
-
+    </div>
     ${runTable}
     <p><strong>Reflection:</strong> ${confidenceText}</p>
     <p>${markdownInsight}</p>
     <div>
       ${journeySection}
     </div>
-    <div class="screenshot-banner" id="saveImageBtn" style="cursor: pointer;">
-    📸 Want to inspire others? Click here to download as image and share!
+    </div>
+    <div id="saveImageBtn" class="screenshot-banner">
+        📸 Want to inspire others? Tap to download as an image and share!
     </div>
     <script>
   document.getElementById("saveImageBtn").addEventListener("click", function () {
-     const chartImg = document.querySelector("#report img");
+    const reportSection = document.getElementById("report"); // make sure this is the correct ID
 
-  if (!chartImg.complete) {
-    chartImg.onload = () => captureReport();
-  } else {
-    captureReport();
-  }
-});
-
-function captureReport() {
-  const reportSection = document.getElementById("report");
-
-  html2canvas(reportSection, {
-    useCORS: true,         // Important if using external image
-    allowTaint: false,     // Prevent image tainting errors
-    scale: 2               // Higher resolution image
-  }).then(canvas => {
-    const link = document.createElement('a');
-    link.download = 'your-running-report.png';
-    link.href = canvas.toDataURL();
-    link.click();
+    // Wait a tick in case chart image hasn't finished loading
+    setTimeout(() => {
+      html2canvas(reportSection, {
+        useCORS: true,
+        scale: 2, // higher quality
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'your-running-report.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }, 300);
   });
-  });
-</script>
+</script>      
   </body>
   </html>
       `;
     } catch (error) {
       console.error(`Insight page error at ${getISTTime()}`, error);
       ctx.status = 500;
-      ctx.body = 'Internal server error';
+      ctx.body = "Internal server error";
     }
   }
 }
-  
 
 module.exports = new InsightController();
-
 
 //  <div class="chart-row">
 //       <img src="${paceChartUrl}" alt="Pace Chart" />
