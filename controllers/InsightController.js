@@ -104,8 +104,7 @@ class InsightController {
       const {markdownInsight, modelUsed} = await openaiInsightFromRuns(
         firstRunRaw,
         latestRunRaw,
-        athleteId,
-        ctx
+        runs
       );
 
       // Prepare plain text for WhatsApp sharing
@@ -182,14 +181,13 @@ class InsightController {
       </div>
     </div>
     ${runTable}
-    <p><strong>Reflection:</strong> ${confidenceText}</p>
-    <p>${markdownInsight}</p>
+    <p><strong>Reflection: </strong>${markdownInsight}</p>
     <div>
       ${journeySection}
     </div>
     </div>
     <div id="saveImageBtn" class="screenshot-banner">
-        📸 Want to inspire others? Tap to download as an image and share!
+        📸 Want to inspire others? Tap here to download as an image and share!
     </div>
     <script>
     const fileName = "${name}";

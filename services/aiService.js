@@ -2,22 +2,24 @@ const axios = require("axios");
 const { prepareRun } = require("../utils/formatUtils");
 const logToGoogleSheet = require("../services/logToGoogleSheet");
 
-function buildPrompt(firstRun, latestRun) {
+function buildPrompt(firstRun, latestRun, allRuns) {
   return `
-  You are a motivational running coach.
-  
-  Given two runs with improved pace or distance, write a short encouraging note that reflects how the runner is improving, consistent, or dedicated. No table, just a friendly paragraph.
-  
-  Run 1: ${JSON.stringify(firstRun)}
-  
-  Run 2: ${JSON.stringify(latestRun)}
-    `;
+You are a friendly and supportive running coach who writes short, encouraging progress notes.
+
+The runner has two runs: their very first and their most recent. Write a warm, motivational paragraph celebrating their progress. Highlight any improvements in pace (min/km), distance (km), or overall consistency. 
+
+Use a personal and positive tone. Mention key stats if helpful — but keep it simple, uplifting, and easy to read. Avoid bullet points or tables. Keep it concise.
+
+First Run: ${JSON.stringify(firstRun)}
+
+Latest Run: ${JSON.stringify(latestRun)}
+`;
 }
 
-async function openaiInsightFromRuns(rawFirstRun, rawLatestRun, athleteId) {
+async function openaiInsightFromRuns(rawFirstRun, rawLatestRun, runs) {
   const firstRun = prepareRun(rawFirstRun);
   const latestRun = prepareRun(rawLatestRun);
-  const prompt = buildPrompt(firstRun, latestRun);
+  const prompt = buildPrompt(firstRun, latestRun, runs);
 
   try {
     const openaiRes = await axios.post(
