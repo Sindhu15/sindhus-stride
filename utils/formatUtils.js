@@ -145,11 +145,11 @@ function generateRunningJourneySection(allRuns) {
     return paceA < paceB ? a : b;
   });
 
-  const longestRunText = `${(longestRun.distance / 1000).toFixed(1)}K on <strong>${formatDate(longestRun.start_date)}</strong>`;
+  const longestRunText = `<b>${(longestRun.distance / 1000).toFixed(1)}K</b> on <strong>${formatDate(longestRun.start_date)}</strong>`;
   const totalDistanceKm = (
     allRuns.reduce((acc, run) => acc + run.distance, 0) / 1000
   ).toFixed(1);
-  const fastestRunText = `${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km on <strong>${formatDate(fastestRun.start_date)}</strong>`;
+  const fastestRunText = `<b>${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km</b> on <strong>${formatDate(fastestRun.start_date)}</strong>`;
 
   const labels = allRuns.map((r) => formatDate(r.start_date));
   const data = allRuns.map((r) => (r.distance / 1000).toFixed(2));
@@ -226,18 +226,29 @@ function generateProgressTable(firstRun, latestRun) {
         <tr>
           <td style="padding: 10px;">First Run</td>
           <td style="padding: 10px;">${formatDate(firstRun.start_date)}</td>
-          <td style="text-align: center; padding: 10px;">${firstDistanceKm.toFixed(1)}</td>
+          <td style="text-align: center; padding: 10px;">${firstDistanceKm.toFixed(1) + 'K'}</td>
           <td style="text-align: center; padding: 10px;">${formatPace(firstRun.moving_time, firstRun.distance)}</td>
         </tr>
         <tr style="background-color: #fafafa; font-weight: bold;">
           <td style="padding: 10px;">Latest Run</td>
           <td style="padding: 10px;">${formatDate(latestRun.start_date)}</td>
-          <td style="text-align: center; padding: 10px;">${latestDistanceKm.toFixed(1)}</td>
+          <td style="text-align: center; padding: 10px;">${latestDistanceKm.toFixed(1) + 'K'}</td>
           <td style="text-align: center; padding: 10px;">${formatPace(latestRun.moving_time, latestRun.distance)}</td>
         </tr>
       </tbody>
     </table>
   `;
+}
+
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result); // base64 string
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 module.exports = {
@@ -248,4 +259,5 @@ module.exports = {
   generateRunningJourneySection,
   generateProgressTable,
   getISTTime,
+  fetchImageAsBase64
 };

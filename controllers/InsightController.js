@@ -81,10 +81,8 @@ class InsightController {
       const activities =
         await require("../services/stravaService").fetchActivities(accessToken);
       const { name, avatar } = await getAthleteProfile(accessToken);
-
       const runs = activities.filter((a) => a.type === "Run");
       const journeySection = generateRunningJourneySection(runs);
-
       if (runs.length < 2) {
         ctx.status = 400;
         ctx.body = "Not enough runs to generate insight.";
@@ -173,7 +171,7 @@ class InsightController {
   <body>
     <div id="report" class="report-wrapper">
     <div style="display: flex; align-items: center; gap: 1em;">
-      <img src="${avatar}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
+      <img src="/proxy-image?url=${encodeURIComponent(avatar)}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
       <div>
         <h3 style="margin: 0; font-size: 1.2em;">
           ${name}’s Progress Report 🏃‍♀️✨
@@ -194,6 +192,7 @@ class InsightController {
         📸 Want to inspire others? Tap to download as an image and share!
     </div>
     <script>
+    const fileName = "${name}";
   document.getElementById("saveImageBtn").addEventListener("click", function () {
     const reportSection = document.getElementById("report"); // make sure this is the correct ID
 
@@ -205,7 +204,7 @@ class InsightController {
         backgroundColor: '#ffffff'
       }).then(canvas => {
         const link = document.createElement('a');
-        link.download = 'your-running-report.png';
+        link.download = fileName + "_progress_report.png";
         link.href = canvas.toDataURL();
         link.click();
       });
