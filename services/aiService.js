@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { prepareRun } = require("../utils/formatUtils");
+const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 function buildPrompt(firstRun, latestRun) {
   return `
@@ -13,7 +14,7 @@ function buildPrompt(firstRun, latestRun) {
     `;
 }
 
-async function openaiInsightFromRuns(rawFirstRun, rawLatestRun) {
+async function openaiInsightFromRuns(rawFirstRun, rawLatestRun, athleteId) {
   const firstRun = prepareRun(rawFirstRun);
   const latestRun = prepareRun(rawLatestRun);
   const prompt = buildPrompt(firstRun, latestRun);
@@ -39,8 +40,10 @@ async function openaiInsightFromRuns(rawFirstRun, rawLatestRun) {
         },
       },
     );
-
-    return openaiRes.data.choices[0].message.content.trim();
+    return {
+      markdownInsight: openaiRes.data.choices[0].message.content.trim(),
+      modelUsed: "OpenAI GPT-3.5 Turbo",
+    };
   } catch (openaiError) {
     console.warn(
       "OpenAI failed, falling back to Together.ai:",
@@ -69,14 +72,19 @@ async function openaiInsightFromRuns(rawFirstRun, rawLatestRun) {
         },
       },
     );
-
-    return togetherRes.data.choices[0].message.content.trim();
+    return {
+      markdownInsight: togetherRes.data.choices[0].message.content.trim(),
+      modelUsed: "Together.ai Mistral-7B-Instruct",
+    };
   } catch (togetherError) {
     console.error(
       "Together.ai also failed:",
       togetherError.response?.data || togetherError.message,
     );
-    return "You're making great progress! Keep it up! 🏃‍♀️";
+    return {
+      markdownInsight: "You're making great progress! Keep it up! 🏃‍♀️",
+      modelUsed: "Fallback message plain text",
+    };
   }
 }
 

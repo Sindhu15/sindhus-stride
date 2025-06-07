@@ -77,7 +77,6 @@ class InsightController {
 
     try {
       console.log(`An Athlete generated their report at ${getISTTime()}`);
-      await logToGoogleSheet("report_generated", athleteId, ctx);
       // Fetch runs from Strava service
       const activities =
         await require("../services/stravaService").fetchActivities(accessToken);
@@ -104,9 +103,11 @@ class InsightController {
       const latestRun = prepareRun(latestRunRaw, firstRunRaw);
 
       // Generate insight markdown from AI
-      const markdownInsight = await openaiInsightFromRuns(
+      const {markdownInsight, modelUsed} = await openaiInsightFromRuns(
         firstRunRaw,
         latestRunRaw,
+        athleteId,
+        ctx
       );
 
       // Prepare plain text for WhatsApp sharing
@@ -114,6 +115,7 @@ class InsightController {
       const confidenceText = getConfidenceLevelText(firstRunRaw, latestRunRaw);
 
       const runTable = generateProgressTable(firstRunRaw, latestRunRaw);
+      logToGoogleSheet({event: "report_generated", athleteId, ctx, modelUsed});
 
       ctx.type = "html";
       ctx.body = `

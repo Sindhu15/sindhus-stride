@@ -17,18 +17,18 @@ class StravaController {
     try {
       const { access_token, athlete } = await exchangeCodeForToken(code);
       console.log(`An Athlete has connected at ${getISTTime()}`);
-      await logToGoogleSheet("strava_authorized", athlete.id, ctx);
+      await logToGoogleSheet({event: "strava_authorized", athleteId: athlete.id, ctx});
       ctx.cookies.set("token", access_token, {
         httpOnly: true,
         signed: true,
         maxAge: 10 * 60 * 1000, // 10 mins
-        secure: true, // only send on HTTPS
+        secure: process.env.NODE_ENV === 'production', // only send on HTTPS
       });
       ctx.cookies.set("athlete_id", athlete.id.toString(), {
         httpOnly: true,
         signed: true,
         maxAge: 10 * 60 * 1000, // 10 mins
-        secure: true,
+        secure: process.env.NODE_ENV === 'production'
       });
       ctx.redirect("/insight-html");
     } catch (error) {
