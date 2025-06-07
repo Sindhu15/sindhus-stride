@@ -6,7 +6,8 @@ const insightRoutes = require("./routes/insightsRoutes");
 const homeRoutes = require("./routes/homeRoutes");
 
 const app = new Koa();
-app.keys = [process.env.SESSION_SECRET || "default_secret"];
+app.keys = [process.env.SESSION_SECRET];
+app.proxy = true; 
 
 app.use(bodyParser());
 app.use(stravaRoutes.routes()).use(stravaRoutes.allowedMethods());

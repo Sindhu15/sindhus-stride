@@ -22,13 +22,13 @@ class StravaController {
         httpOnly: true,
         signed: true,
         maxAge: 10 * 60 * 1000, // 10 mins
-        secure: process.env.NODE_ENV !== "development", // only send on HTTPS
+        secure: true, // only send on HTTPS
       });
       ctx.cookies.set("athlete_id", athlete.id.toString(), {
         httpOnly: true,
         signed: true,
         maxAge: 10 * 60 * 1000, // 10 mins
-        secure: process.env.NODE_ENV !== "development",
+        secure: true,
       });
       ctx.redirect("/insight-html");
     } catch (error) {
