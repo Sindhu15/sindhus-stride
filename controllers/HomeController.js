@@ -39,10 +39,8 @@ class HomeController {
           <div style="background: #fffbe6; border-radius: 12px; padding: 2rem; margin: 2rem auto; max-width: 600px;box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);">
           <p>See how far you’ve come in your running journey. Your runs have a story. Let’s tell it.</p>
           <p>Authorize with Strava and get a personalized progress report you can share with friends or your coach!</p>
-          <p>This is a fun, privacy-first app. We don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
-           <p style="font-size: 1rem; margin-bottom: 2rem;">
-            🙌 Good vibes only ❤️💪😊
-          </p>
+          <p>This is a fun, privacy-first app. I don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
+          <p>🙌 Good vibes only ❤️💪😊</p>
           </div>
           <a class="cta" href="/auth/strava">Connect with Strava</a>
         </body>
