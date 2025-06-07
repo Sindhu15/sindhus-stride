@@ -100,7 +100,9 @@ class InsightController {
       ctx.body = `
          <!DOCTYPE html>
             <html lang="en">
-        <head>
+            <!-- In <head> -->
+            <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+         <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Stride Insight</title>
     <style>
@@ -139,7 +141,7 @@ class InsightController {
     }
     </style>
   </head>
-  <body>
+  <body id="report">
       <div style="display: flex; align-items: center; gap: 1em;">
         <img src="${avatar}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
         <div>
@@ -158,9 +160,35 @@ class InsightController {
     <div>
       ${journeySection}
     </div>
-    <div class="screenshot-banner">
-    📸 Want to inspire others? Take a screenshot and share in the WhatsApp group!
+    <div class="screenshot-banner" id="saveImageBtn" style="cursor: pointer;">
+    📸 Want to inspire others? Click here to download as image and share!
     </div>
+    <script>
+  document.getElementById("saveImageBtn").addEventListener("click", function () {
+     const chartImg = document.querySelector("#report img");
+
+  if (!chartImg.complete) {
+    chartImg.onload = () => captureReport();
+  } else {
+    captureReport();
+  }
+});
+
+function captureReport() {
+  const reportSection = document.getElementById("report");
+
+  html2canvas(reportSection, {
+    useCORS: true,         // Important if using external image
+    allowTaint: false,     // Prevent image tainting errors
+    scale: 2               // Higher resolution image
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'your-running-report.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+  });
+</script>
   </body>
   </html>
       `;

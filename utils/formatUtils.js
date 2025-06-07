@@ -186,7 +186,7 @@ function generateRunningJourneySection(allRuns) {
       <p>🏅 <strong>Longest Run:</strong> ${longestRunText}</p>
       <p>⚡ <strong>Fastest Pace:</strong> ${fastestRunText}</p>
       <p><b>Your consistency in Kilometers 📊 </b></p>
-      <img src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />
+      <img crossorigin="anonymous" src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />
     </div>
   `;
 }
