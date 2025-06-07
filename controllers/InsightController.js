@@ -65,9 +65,12 @@ class InsightController {
   }
 
   async getInsightHtml(ctx) {
-    const accessToken = ctx.cookies.get("token", { signed: true });
+    // const accessToken = ctx.cookies.get("token", { signed: true });
+    // const athleteId =
+    //   ctx.cookies.get("athleteId", { signed: true }) || "Unknown";
+      const accessToken = ctx.query.accessToken;
     const athleteId =
-      ctx.cookies.get("athleteId", { signed: true }) || "Unknown";
+      ctx.query.athleteId;
     console.log(`Athlete ID: ${athleteId}`, accessToken);
     if (!accessToken) {
       ctx.status = 400;
