@@ -3,6 +3,8 @@ const {
   fetchActivities,
 } = require("../services/stravaService");
 
+const { getISTTime } = require("../utils/formatUtils");
+
 class StravaController {
   async authRedirect(ctx) {
     const redirectUri = `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${process.env.STRAVA_REDIRECT_URI}&approval_prompt=force&scope=activity:read`;
@@ -12,10 +14,8 @@ class StravaController {
   async callback(ctx) {
     const code = ctx.query.code;
     try {
-      const { access_token, athlete } = await exchangeCodeForToken(code);
-      console.log("Access Token:", access_token);
-      console.log("Athlete ID:", athlete.id);
-      // ctx.body = `✅ Connected! Your access token is:\n${access_token}`;
+      const { access_token } = await exchangeCodeForToken(code);
+      console.log(`An Athlete has connected at ${getISTTime()}`);
       ctx.redirect(`/insight-html?token=${access_token}`);
     } catch (error) {
       console.error(

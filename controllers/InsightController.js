@@ -1,6 +1,6 @@
 const { marked } = require('marked');
 const { openaiInsightFromRuns } = require('../services/aiService');
-const { prepareRun, getQuickChartUrl, getConfidenceLevelText, generateRunningJourneySection, generateProgressTable } = require('../utils/formatUtils');
+const { prepareRun, getQuickChartUrl, getConfidenceLevelText, generateRunningJourneySection, generateProgressTable, getISTTime } = require('../utils/formatUtils');
 const { getAthleteProfile } = require('../services/stravaService');
 
 class InsightController {
@@ -56,6 +56,7 @@ class InsightController {
     }
     
     try {
+      console.log(`An Athlete generated their report at ${getISTTime()}`);
       // Fetch runs from Strava service
       const activities = await require('../services/stravaService').fetchActivities(accessToken);
       const { name, avatar } = await getAthleteProfile(accessToken);
@@ -94,7 +95,7 @@ class InsightController {
       const confidenceText = getConfidenceLevelText(firstRunRaw, latestRunRaw);
 
       const runTable = generateProgressTable(firstRunRaw, latestRunRaw);
-  
+      
       ctx.type = 'html';
       ctx.body = `
          <!DOCTYPE html>
@@ -105,7 +106,7 @@ class InsightController {
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
              Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-             margin: 10px 15px; color: #333; }
+             margin: 10px 15px; color: #333; font-size: 0.8em; }
       table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
       th, td { border: 1px solid #ddd; padding: 0.75rem; text-align: center; }
       th { background-color: #f4f4f4; }
@@ -164,7 +165,7 @@ class InsightController {
   </html>
       `;
     } catch (error) {
-      console.error('Insight page error:', error);
+      console.error(`Insight page error at ${getISTTime()}`, error);
       ctx.status = 500;
       ctx.body = 'Internal server error';
     }

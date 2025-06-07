@@ -1,3 +1,10 @@
+const getISTTime = () => {
+  return new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour12: false,
+  });
+};
+
 function formatPace(movingTimeSec, distanceMeters) {
   const paceSecPerKm = movingTimeSec / (distanceMeters / 1000); // seconds/km
   const min = Math.floor(paceSecPerKm / 60);
@@ -138,9 +145,9 @@ function generateRunningJourneySection(allRuns) {
     return paceA < paceB ? a : b;
   });
 
-  const longestRunText = `${(longestRun.distance / 1000).toFixed(2)} km on ${formatDate(longestRun.start_date)}`;
+  const longestRunText = `${(longestRun.distance / 1000).toFixed(1)}K on <strong>${formatDate(longestRun.start_date)}</strong>`;
   const totalDistanceKm = (allRuns.reduce((acc, run) => acc + run.distance, 0) / 1000).toFixed(1);
-  const fastestRunText = `${formatPace(fastestRun.moving_time, fastestRun.distance)} on ${formatDate(fastestRun.start_date)}`;
+  const fastestRunText = `${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km on <strong>${formatDate(fastestRun.start_date)}</strong>`;
 
   const labels = allRuns.map((r) => formatDate(r.start_date));
   const data = allRuns.map((r) => (r.distance / 1000).toFixed(2));
@@ -174,11 +181,12 @@ function generateRunningJourneySection(allRuns) {
 
   return `
     <div>
-      <h4>Your Running Journey So Far 🛤️</h4>
-      <p>🏃‍♀️ <strong>Total Runs:</strong> ${totalRuns} covering ${totalDistanceKm} kms — Every step counts, and you've taken many!</p>
+      <h4>Your Running Journey So Far 🛤️  </h4>
+      <p>🏃‍♀️ <strong>Total Runs:</strong> <strong>${totalRuns}</strong> covering <strong>${totalDistanceKm} kms</strong>. Every step counts, and you've taken many!</p>
       <p>🏅 <strong>Longest Run:</strong> ${longestRunText}</p>
       <p>⚡ <strong>Fastest Pace:</strong> ${fastestRunText}</p>
-      <img src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 1em; border-radius: 8px;" />
+      <p><b>Your consistency in Kilometers 📊 </b></p>
+      <img src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />
     </div>
   `;
 }
@@ -237,4 +245,5 @@ module.exports = {
   getConfidenceLevelText,
   generateRunningJourneySection,
   generateProgressTable,
+  getISTTime
 };
