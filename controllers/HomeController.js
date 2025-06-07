@@ -32,6 +32,13 @@ class HomeController {
               margin-top: 2rem;
               border-radius: 999px;
             }
+            .coming-soon-message {
+              font-weight: 700;
+              font-size: 1.2rem;
+              text-align: center;
+              margin-top: 1.5rem;
+              color: #444;
+            }
           </style>
         </head>
         <body>
@@ -42,7 +49,9 @@ class HomeController {
           <p>This is a fun, privacy-first app. I don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
           <p>🙌 Good vibes only ❤️💪😊</p>
           </div>
-          <a class="cta" href="/auth/strava">Connect with Strava</a>
+          <p class="coming-soon-message">
+            ⏳ Hold on!!! Come here tomorrow after your race 😉
+          </p>
         </body>
         </html>
       `;
@@ -50,3 +59,5 @@ class HomeController {
 }
 
 module.exports = new HomeController();
+
+//          // <a class="cta" href="/auth/strava">Connect with Strava</a>
