@@ -4,6 +4,7 @@ const {
 } = require("../services/stravaService");
 
 const { getISTTime } = require("../utils/formatUtils");
+const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 class StravaController {
   async authRedirect(ctx) {
@@ -14,9 +15,22 @@ class StravaController {
   async callback(ctx) {
     const code = ctx.query.code;
     try {
-      const { access_token } = await exchangeCodeForToken(code);
+      const { access_token, athlete } = await exchangeCodeForToken(code);
       console.log(`An Athlete has connected at ${getISTTime()}`);
-      ctx.redirect(`/insight-html?token=${access_token}`);
+      await logToGoogleSheet("strava_authorized", athlete.id, ctx);
+      ctx.cookies.set("token", access_token, {
+        httpOnly: true,
+        signed: true,
+        maxAge: 10 * 60 * 1000, // 10 mins
+        secure: process.env.NODE_ENV !== "development", // only send on HTTPS
+      });
+      ctx.cookies.set("athlete_id", athlete.id.toString(), {
+        httpOnly: true,
+        signed: true,
+        maxAge: 10 * 60 * 1000, // 10 mins
+        secure: process.env.NODE_ENV !== "development",
+      });
+      ctx.redirect("/insight-html");
     } catch (error) {
       console.error(
         "Error exchanging code:",

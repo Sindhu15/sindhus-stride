@@ -9,6 +9,7 @@ const {
   getISTTime,
 } = require("../utils/formatUtils");
 const { getAthleteProfile } = require("../services/stravaService");
+const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 class InsightController {
   async generateInsight(ctx) {
@@ -32,7 +33,7 @@ class InsightController {
   }
 
   async combinedInsight(ctx) {
-    const accessToken = ctx.query.token;
+    const { accessToken } = ctx.query;
     if (!accessToken) {
       ctx.status = 400;
       ctx.body = "Access token is required";
@@ -51,7 +52,7 @@ class InsightController {
       );
       const first = sortedRuns[0];
       const latest = sortedRuns[sortedRuns.length - 1];
-      const summary = await openaiInsightFromRuns(first, latest);
+      const summary = ""; //await openaiInsightFromRuns(first, latest);
       ctx.body = { summary };
     } catch (error) {
       console.error(
@@ -64,7 +65,10 @@ class InsightController {
   }
 
   async getInsightHtml(ctx) {
-    const accessToken = ctx.query.token;
+    const accessToken = ctx.cookies.get("token", { signed: true });
+    const athleteId =
+      ctx.cookies.get("athleteId", { signed: true }) || "Unknown";
+    console.log(`Athlete ID: ${athleteId}`, accessToken);
     if (!accessToken) {
       ctx.status = 400;
       ctx.body = "Access token is required";
@@ -73,6 +77,7 @@ class InsightController {
 
     try {
       console.log(`An Athlete generated their report at ${getISTTime()}`);
+      await logToGoogleSheet("report_generated", athleteId, ctx);
       // Fetch runs from Strava service
       const activities =
         await require("../services/stravaService").fetchActivities(accessToken);
@@ -102,18 +107,6 @@ class InsightController {
       const markdownInsight = await openaiInsightFromRuns(
         firstRunRaw,
         latestRunRaw,
-      );
-
-      // Convert markdown to HTML
-      const insightHtml = marked(markdownInsight);
-
-      // Generate QuickChart URL
-      const chartUrl = getQuickChartUrl(firstRun, latestRun);
-      const paceChartUrl = getQuickChartUrl(firstRun, latestRun, "pace");
-      const distanceChartUrl = getQuickChartUrl(
-        firstRun,
-        latestRun,
-        "distance",
       );
 
       // Prepare plain text for WhatsApp sharing

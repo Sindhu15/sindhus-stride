@@ -1,14 +1,14 @@
 require("dotenv").config();
 const Koa = require("koa");
 const bodyParser = require("koa-bodyparser");
-
 const stravaRoutes = require("./routes/stravaRoutes");
 const insightRoutes = require("./routes/insightsRoutes");
 const homeRoutes = require("./routes/homeRoutes");
 
 const app = new Koa();
-app.use(bodyParser());
+app.keys = [process.env.SESSION_SECRET || "default_secret"];
 
+app.use(bodyParser());
 app.use(stravaRoutes.routes()).use(stravaRoutes.allowedMethods());
 app.use(insightRoutes.routes()).use(insightRoutes.allowedMethods());
 app.use(homeRoutes.routes()).use(homeRoutes.allowedMethods());
