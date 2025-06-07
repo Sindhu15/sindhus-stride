@@ -49,7 +49,9 @@ class HomeController {
           <p>This is a fun, privacy-first app. I don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
           <p>🙌 Good vibes only ❤️💪😊</p>
           </div>
-          <a class="cta" href="/auth/strava">Connect using Strava</a>
+          <p class="coming-soon-message">
+    ⏳        Hold on!!! Come here tomorrow after your race 😉
+          </p>
         </body>
         </html>
       `;
@@ -58,6 +60,5 @@ class HomeController {
 
 module.exports = new HomeController();
 
-  // <p class="coming-soon-message">
-  //           ⏳ Hold on!!! Come here tomorrow after your race 😉
-  //         </p>
+  
+//           <a class="cta" href="/auth/strava">Connect using Strava</a>
