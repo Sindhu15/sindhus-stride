@@ -49,7 +49,10 @@ class HomeController {
           <p>This is a fun, privacy-first app. I don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
           <p>🙌 Good vibes only ❤️💪😊</p>
           </div>
-           <a class="cta" href="/auth/strava">Connect using Strava</a>
+          <p class="coming-soon-message">
+            🚧 Stay tuned — We're currently waiting for Strava's approval to open this up to more users.  
+            Until then, keep crushing your runs! 💪🏽
+          </p>
         </body>
         </html>
       `;
