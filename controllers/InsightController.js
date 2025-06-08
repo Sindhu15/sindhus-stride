@@ -7,6 +7,8 @@ const {
   generateRunningJourneySection,
   generateProgressTable,
   getISTTime,
+  getLongestRun,
+  generateChartUrl
 } = require("../utils/formatUtils");
 const { getAthleteProfile } = require("../services/stravaService");
 const logToGoogleSheet = require("../services/logToGoogleSheet");
@@ -82,7 +84,7 @@ class InsightController {
         await require("../services/stravaService").fetchActivities(accessToken);
       const { name, avatar } = await getAthleteProfile(accessToken);
       const runs = activities.filter((a) => a.type === "Run");
-      const journeySection = generateRunningJourneySection(runs);
+
       if (runs.length < 2) {
         ctx.status = 400;
         ctx.body = "Not enough runs to generate insight.";
@@ -93,25 +95,27 @@ class InsightController {
       const sortedRuns = runs.sort(
         (a, b) => new Date(a.start_date) - new Date(b.start_date),
       );
+      const journeySection = generateRunningJourneySection(sortedRuns);
+      const chartSection = generateChartUrl(sortedRuns);
       const firstRunRaw = sortedRuns[0];
-      const latestRunRaw = sortedRuns[sortedRuns.length - 1];
+      const recentBestRunRaw =  getLongestRun(sortedRuns); //sortedRuns[sortedRuns.length - 1];
 
       // Prepare runs for formatting/chart
       const firstRun = prepareRun(firstRunRaw);
-      const latestRun = prepareRun(latestRunRaw, firstRunRaw);
+      const latestRun = prepareRun(recentBestRunRaw, firstRunRaw);
 
       // Generate insight markdown from AI
       const {markdownInsight, modelUsed} = await openaiInsightFromRuns(
         firstRunRaw,
-        latestRunRaw,
+        recentBestRunRaw,
         runs
       );
 
       // Prepare plain text for WhatsApp sharing
       const plainTextInsight = markdownInsight.replace(/<\/?[^>]+(>|$)/g, "");
-      const confidenceText = getConfidenceLevelText(firstRunRaw, latestRunRaw);
+      const confidenceText = getConfidenceLevelText(firstRunRaw, recentBestRunRaw);
 
-      const runTable = generateProgressTable(firstRunRaw, latestRunRaw);
+      const runTable = generateProgressTable(firstRunRaw, recentBestRunRaw);
       logToGoogleSheet({event: "report_generated", athleteId, ctx, modelUsed});
 
       ctx.type = "html";
@@ -180,11 +184,11 @@ class InsightController {
         </p>
       </div>
     </div>
-    ${runTable}
-    <p><strong>Reflection: </strong>${markdownInsight}</p>
-    <div>
+     <div>
       ${journeySection}
     </div>
+    <p><strong>Reflection: </strong>${markdownInsight}</p>
+    <div>${chartSection}</div>
     </div>
     <div id="saveImageBtn" class="screenshot-banner">
         📸 Want to inspire others? Tap here to download as an image and share!
