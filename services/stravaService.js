@@ -1,4 +1,16 @@
 const axios = require("axios");
+const NodeCache = require("node-cache");
+const activityCache = new NodeCache({ stdTTL: 600 }); // 10 min TTL
+const crypto = require("crypto");
+
+function getCachedActivities(athleteId) {
+  return activityCache.get(athleteId);
+}
+
+function setCachedActivities(athleteId, activities) {
+  activityCache.set(athleteId, activities);
+}
+
 
 async function exchangeCodeForToken(code) {
   const response = await axios.post("https://www.strava.com/oauth/token", {
@@ -11,6 +23,16 @@ async function exchangeCodeForToken(code) {
 }
 
 async function fetchActivities(accessToken) {
+  const hash = accessToken
+      ? crypto.createHash("sha256").update(String(accessToken)).digest("hex")
+      : "";
+
+  const cached = getCachedActivities(hash);
+  if (cached){
+    console.log("Reading runs from cache");
+    return cached;}
+
+  console.log("Making API call to Strava");
   const response = await axios.get(
     "https://www.strava.com/api/v3/athlete/activities",
     {
@@ -18,7 +40,9 @@ async function fetchActivities(accessToken) {
       params: { per_page: 100, page: 1 },
     },
   );
-  return response.data.filter((a) => a.type === "Run");
+  const runs =  response.data.filter((a) => a.type === "Run");
+  setCachedActivities(hash, runs);
+  return runs;
 }
 
 async function getAthleteProfile(accessToken) {
