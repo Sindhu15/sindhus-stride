@@ -9,7 +9,7 @@ const {
   getISTTime,
   getLongestRun,
   generateChartUrl,
-  selectedLine
+  selectedLine,
 } = require("../utils/formatUtils");
 const { getAthleteProfile } = require("../services/stravaService");
 const logToGoogleSheet = require("../services/logToGoogleSheet");
@@ -99,25 +99,33 @@ class InsightController {
       const journeySection = generateRunningJourneySection(sortedRuns);
       const chartSection = generateChartUrl(sortedRuns);
       const firstRunRaw = sortedRuns[0];
-      const recentBestRunRaw =  getLongestRun(sortedRuns); //sortedRuns[sortedRuns.length - 1];
+      const recentBestRunRaw = getLongestRun(sortedRuns); //sortedRuns[sortedRuns.length - 1];
 
       // Prepare runs for formatting/chart
       const firstRun = prepareRun(firstRunRaw);
       const latestRun = prepareRun(recentBestRunRaw, firstRunRaw);
 
       // Generate insight markdown from AI
-      const {markdownInsight, modelUsed} = await openaiInsightFromRuns(
+      const { markdownInsight, modelUsed } = await openaiInsightFromRuns(
         firstRunRaw,
         recentBestRunRaw,
-        runs
+        runs,
       );
 
       // Prepare plain text for WhatsApp sharing
       const plainTextInsight = markdownInsight.replace(/<\/?[^>]+(>|$)/g, "");
-      const confidenceText = getConfidenceLevelText(firstRunRaw, recentBestRunRaw);
+      const confidenceText = getConfidenceLevelText(
+        firstRunRaw,
+        recentBestRunRaw,
+      );
 
       const runTable = generateProgressTable(firstRunRaw, recentBestRunRaw);
-      logToGoogleSheet({event: "report_generated", athleteId, ctx, modelUsed});
+      logToGoogleSheet({
+        event: "report_generated",
+        athleteId,
+        ctx,
+        modelUsed,
+      });
 
       ctx.type = "html";
       ctx.body = `
@@ -168,6 +176,21 @@ class InsightController {
       font-size: 1rem;
       border-radius: 8px;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .feedback-section {
+      background-color: #1868db91;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      color: white;
+      font-size: 1.2em;
+      width: 100%;
+      align-items: center;
+      display: flex;
+      padding: 1em 0px;
+      justify-content: center;
     }
   .report-wrapper {
   padding: 24px;
@@ -201,6 +224,7 @@ class InsightController {
     <div id="saveImageBtn" class="screenshot-banner">
         📸 Want to inspire others? Tap here to download as an image and share!
     </div>
+    <a class="feedback-section" href="https://forms.gle/FDJhkNz8MvLo7wm77" class="cta">I'd love your feedback</a>
     <script>
     const fileName = "${name}";
   document.getElementById("saveImageBtn").addEventListener("click", function () {
@@ -226,8 +250,14 @@ class InsightController {
       `;
     } catch (error) {
       console.error(`Insight page error at ${getISTTime()}`, error);
-      ctx.status = 500;
-      ctx.body = "Internal server error";
+      await logToGoogleSheet({
+        event: "error_insights_page",
+        athleteId: athlete.id,
+        ctx,
+      });
+      ctx.redirect(
+        "/error?message=Failed to generate the report. Please try again later.",
+      );
     }
   }
 }

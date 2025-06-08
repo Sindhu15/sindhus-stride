@@ -17,18 +17,22 @@ class StravaController {
     try {
       const { access_token, athlete } = await exchangeCodeForToken(code);
       console.log(`An Athlete has connected at ${getISTTime()}`);
-      await logToGoogleSheet({event: "strava_authorized", athleteId: athlete.id, ctx});
+      await logToGoogleSheet({
+        event: "strava_authorized",
+        athleteId: athlete.id,
+        ctx,
+      });
       ctx.cookies.set("token", access_token, {
         httpOnly: true,
         signed: true,
         maxAge: 10 * 60 * 1000, // 10 mins
-        secure: process.env.NODE_ENV === 'production', // only send on HTTPS
+        secure: process.env.NODE_ENV === "production", // only send on HTTPS
       });
       ctx.cookies.set("athlete_id", athlete.id.toString(), {
         httpOnly: true,
         signed: true,
-        maxAge: 10 * 60 * 1000, // 10 mins
-        secure: process.env.NODE_ENV === 'production'
+        maxAge: 100 * 60 * 1000, // 10 mins
+        secure: process.env.NODE_ENV === "production",
       });
       ctx.redirect("/insight-html");
     } catch (error) {
@@ -36,8 +40,12 @@ class StravaController {
         "Error exchanging code:",
         error.response?.data || error.message,
       );
-      ctx.status = 500;
-      ctx.body = "❌ Error connecting to Strava.";
+      await logToGoogleSheet({
+        event: "error_strava_authorization",
+        athleteId: "error",
+        ctx,
+      });
+      ctx.redirect("/error?message=Error Connecting to Strava");
     }
   }
 
@@ -56,8 +64,12 @@ class StravaController {
         "Error fetching activities:",
         error.response?.data || error.message,
       );
-      ctx.status = 500;
-      ctx.body = "Failed to fetch activities";
+      await logToGoogleSheet({
+        event: "error_strava_fetch_activities",
+        athleteId: athlete.id,
+        ctx,
+      });
+      ctx.redirect("/error?message=Failed to fetch activities");
     }
   }
 }

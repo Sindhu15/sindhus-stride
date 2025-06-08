@@ -4,17 +4,20 @@ const bodyParser = require("koa-bodyparser");
 const stravaRoutes = require("./routes/stravaRoutes");
 const insightRoutes = require("./routes/insightsRoutes");
 const homeRoutes = require("./routes/homeRoutes");
-const imageProxyRoutes = require('./routes/imageProxy');
+const imageProxyRoutes = require("./routes/imageProxy");
+const serve = require("koa-static");
+const path = require("path");
 
 const app = new Koa();
 app.keys = [process.env.SESSION_SECRET];
-app.proxy = true; 
+app.proxy = true;
 
 app.use(bodyParser());
 app.use(stravaRoutes.routes()).use(stravaRoutes.allowedMethods());
 app.use(insightRoutes.routes()).use(insightRoutes.allowedMethods());
 app.use(homeRoutes.routes()).use(homeRoutes.allowedMethods());
 app.use(imageProxyRoutes.routes());
+app.use(serve(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

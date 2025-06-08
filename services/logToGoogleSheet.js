@@ -1,7 +1,7 @@
 const axios = require("axios");
 const crypto = require("crypto");
 
-async function logToGoogleSheet({event, athleteId, ctx, modelUsed}) {
+async function logToGoogleSheet({ event, athleteId, ctx, modelUsed }) {
   const hostname = ctx.request.hostname || ctx.headers.host || "unknown";
   const hash = athleteId
     ? crypto.createHash("sha256").update(String(athleteId)).digest("hex")
