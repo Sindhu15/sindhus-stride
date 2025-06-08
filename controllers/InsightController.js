@@ -8,7 +8,8 @@ const {
   generateProgressTable,
   getISTTime,
   getLongestRun,
-  generateChartUrl
+  generateChartUrl,
+  selectedLine
 } = require("../utils/formatUtils");
 const { getAthleteProfile } = require("../services/stravaService");
 const logToGoogleSheet = require("../services/logToGoogleSheet");
@@ -131,8 +132,14 @@ class InsightController {
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
              Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
              margin: 10px 15px; color: #333; font-size: 0.8em; }
-      table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
-      th, td { border: 1px solid #ddd; padding: 0.75rem; text-align: center; }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      th, td { border: 1px solid #ddd; padding: 0.75rem; text-align: left; }
       th { background-color: #f4f4f4; }
       img { max-width: 100%; margin: 2px 0; }
       a.share-btn {
@@ -187,7 +194,8 @@ class InsightController {
      <div>
       ${journeySection}
     </div>
-    <p><strong>Reflection: </strong>${markdownInsight}</p>
+    <div style="margin-top: 1em"><strong>Reflection: </strong></div>
+    <div>${markdownInsight}</div>
     <div>${chartSection}</div>
     </div>
     <div id="saveImageBtn" class="screenshot-banner">

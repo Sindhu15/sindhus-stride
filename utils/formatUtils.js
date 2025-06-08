@@ -171,8 +171,8 @@ function generateRunningJourneySection(allRuns) {
   const milestoneTable = getMileStoneTable(firstRun, longestRun, fastestRun);
   return `
     <div>
-      <h4>Your Running Journey So Far 🛤️</h4>
-      <p>🏃‍♀️ <strong>Total Runs:</strong> <strong>${totalRuns}</strong> covering <strong>${totalDistanceKm} kms</strong>. Every step counts, and you've taken many!</p>
+      <div>🏁 From <b>${(firstRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(firstRun.moving_time, firstRun.distance)} m/km to <b>${(longestRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(longestRun.moving_time, longestRun.distance)} min/km — what a journey! </div>
+      <p><strong>${totalRuns}</strong> total runs🏃‍♀️ covering <strong>${totalDistanceKm} kms</strong>. Every step counts, and you've taken many!</p>
       <p> ${milestoneTable}
     </div>
   `;
@@ -197,23 +197,23 @@ function getMileStoneTable(firstRun, longestRun, fastestRun) {
       </thead>
       <tbody>
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">First Run</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">First</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(firstRun.start_date)}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${(firstRun.distance / 1000).toFixed(1)}K</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(firstRun.distance / 1000).toFixed(1)} km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(firstRun.moving_time, firstRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(firstRun.moving_time)}</td>
         </tr>
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">Longest Run</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Longest</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(longestRun.start_date)}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${(longestRun.distance / 1000).toFixed(1)}K</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(longestRun.distance / 1000).toFixed(1)} km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(longestRun.moving_time, longestRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(longestRun.moving_time)}</td>
         </tr>
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">Fastest Pace</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Fastest</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(fastestRun.start_date)}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${(fastestRun.distance / 1000).toFixed(1)}K</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(fastestRun.distance / 1000).toFixed(1)} km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(fastestRun.moving_time, fastestRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(fastestRun.moving_time)}</td>
         </tr>
@@ -312,6 +312,28 @@ async function fetchImageAsBase64(url) {
     reader.readAsDataURL(blob);
   });
 }
+
+const closingLines = [
+    "Every step tells a story — and yours is just getting started.",
+    "You're running not just with your legs, but with heart and purpose.",
+    "Your journey is an inspiration — keep chasing the horizon.",
+    "Progress isn't always loud, but yours is powerful.",
+    "The road ahead is yours — keep writing your running story.",
+    "You've come far — and the best is yet to come.",
+    "Proud of how far you’ve come, excited for what’s next.",
+    "You're not just logging kilometers — you're building confidence.",
+    "Your shoes have stories, and they speak of strength.",
+    "This isn't the finish line — it's a milestone on your way up.",
+    "With every run, you're proving what's possible.",
+    "Fuelled by grit, powered by belief — keep running.",
+    "You're unstoppable. Let your strides echo that truth.",
+    "You’ve already won — the moment you chose to start.",
+    "Consistency beats perfection. Always."
+];
+
+const selectedLine = closingLines[Math.floor(Math.random() * closingLines.length)];
+
+
 module.exports = {
   formatPace,
   prepareRun,
@@ -322,5 +344,6 @@ module.exports = {
   getISTTime,
   fetchImageAsBase64,
   getLongestRun,
-  generateChartUrl
+  generateChartUrl,
+  selectedLine
 };
