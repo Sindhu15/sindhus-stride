@@ -98,7 +98,7 @@ function getRunnerTitle(name, allRuns) {
   else if (totalKm > 150 || totalRuns > 50) powerWord = "Charger";
   else powerWord = "Explorer";
 
-  return `🏅 ${name}, the ${adjective} ${powerWord}!`;
+  return `${name}, the ${adjective} ${powerWord}!🏅 `;
 }
 
 function getFastestPace(allRuns) {
