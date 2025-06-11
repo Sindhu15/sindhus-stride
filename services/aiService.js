@@ -4,17 +4,18 @@ const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 function buildPrompt(firstRun, latestRun, allRuns) {
   return `
-You are a friendly and supportive running friend who writes short, encouraging progress notes. 
+You are a friendly and supportive running buddy who writes short, uplifting progress notes.
 
 Write a two-paragraph message separated by a line break (\\n\\n):
-- In the **first paragraph**, reflect on the runner’s progress from their first to their latest run and their total runs. Highlight improvements in pace (min/km), distance (km), endurance, or resilience. Use a warm, proud tone. Keep it concise, around 3-4 sentences.
-- In the **second paragraph**, hype them up for what’s ahead! Be fun, personal, and motivational — like a cheerful friend cheering them on. Keep it playful, fun and full of energy. Keepit concise.
+- In the **first paragraph**, reflect on the runner’s journey from their first to latest run. Celebrate improvements in pace (min/km), distance (km), endurance, or consistency. Mention the total number of runs if it adds to the story. Use a warm, proud tone. Keep it personal and concise — around 3–5 sentences.
+- In the **second paragraph**, hype them up for what’s ahead! Be playful, energetic, and encouraging — like a best friend cheering from the sidelines. Add some spark and fun. Keep it concise.
 
 First Run: ${JSON.stringify(firstRun)}
-
 Latest Run: ${JSON.stringify(latestRun)}
-`;
+All Runs Count: ${allRuns?.length}
+  `;
 }
+
 
 async function openaiInsightFromRuns(rawFirstRun, rawLatestRun, runs) {
   const firstRun = prepareRun(rawFirstRun);
