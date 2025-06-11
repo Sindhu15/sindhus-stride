@@ -1,3 +1,5 @@
+const { getLongestWeeklyStreakWithRange } = require("./helpers");
+
 const getISTTime = () => {
   return new Date().toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -168,10 +170,15 @@ function generateRunningJourneySection(allRuns) {
   const fastestRunText = `<b>${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km</b> on <strong>${formatDate(fastestRun.start_date)}</strong>`;
 
   const milestoneTable = getMileStoneTable(firstRun, longestRun, fastestRun);
+
+  const longestWeeklyStreakText = getLongestWeeklyStreakWithRange(allRuns);
+
+  // <div>🏁 From <b>${(firstRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(firstRun.moving_time, firstRun.distance)} m/km to <b>${(longestRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(longestRun.moving_time, longestRun.distance)} min/km — what a journey! </div>
+
   return `
     <div>
-      <div>🏁 From <b>${(firstRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(firstRun.moving_time, firstRun.distance)} m/km to <b>${(longestRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(longestRun.moving_time, longestRun.distance)} min/km — what a journey! </div>
       <p><strong>${totalRuns}</strong> total runs🏃‍♀️ covering <strong>${totalDistanceKm} kms</strong>. Every step counts, and you've taken many!</p>
+      <div>${longestWeeklyStreakText}</div>
       <p> ${milestoneTable}
     </div>
   `;

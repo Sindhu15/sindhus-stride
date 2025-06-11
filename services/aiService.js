@@ -4,11 +4,11 @@ const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 function buildPrompt(firstRun, latestRun, allRuns) {
   return `
-You are a friendly and supportive running friend who writes short, encouraging progress notes.
+You are a friendly and supportive running friend who writes short, encouraging progress notes. 
 
-The runner has two runs: their very first and their most recent. Write a warm, motivational paragraph celebrating their progress. Highlight any improvements in pace (min/km), distance (km), endurance or overall consistency. Make them reflect. Hype them up for their journey so far and get them excited for what's next!
-
-Use a personal, positive, cheerful, fun tone. Mention key stats if helpful — but keep it simple, uplifting, and easy to read. Keep it concise. Be a fun and playful cheerleader. Make them feel good and proud of their journey! Make them look forward to what's next.
+Write a two-paragraph message separated by a line break (\\n\\n):
+- In the **first paragraph**, reflect on the runner’s progress from their first to their latest run and their total runs. Highlight improvements in pace (min/km), distance (km), endurance, or resilience. Use a warm, proud tone. Keep it concise, around 3-4 sentences.
+- In the **second paragraph**, hype them up for what’s ahead! Be fun, personal, and motivational — like a cheerful friend cheering them on. Keep it playful, fun and full of energy. Keepit concise.
 
 First Run: ${JSON.stringify(firstRun)}
 

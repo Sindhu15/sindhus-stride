@@ -42,17 +42,19 @@ class HomeController {
           </style>
         </head>
         <body>
-          <h2>🏃‍♀️ Welcome to Sindhu’s Stride</h2>
+            <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+              <img src="./images/group_orange.svg" alt="Uplift" style="width: 150px; display: block; margin-bottom: 4px; vertical-align: middle;" />
+            </div>
+            <img src="./images/powered-by-strava.svg" alt="Powered by Strava" style="width: 120px;" />
           <div style="background: #fffbe6; border-radius: 12px; padding: 2rem; margin: 2rem auto; max-width: 600px;box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);">
           <p>See how far you’ve come in your running journey. Your runs have a story. Let’s tell it.</p>
           <p>Authorize with Strava and get a personalized progress report you can share with friends or your coach!</p>
           <p>This is a fun, privacy-first app. I don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
           <p>🙌 Good vibes only ❤️💪😊</p>
           </div>
-          <p class="coming-soon-message">
-            🚧 Stay tuned — We're currently waiting for Strava's approval to open this up to more users.  
-            Until then, keep crushing your runs! 💪🏽
-          </p>
+          <a href="/auth/strava">
+            <img src="./images/connect-with-strava.svg" alt="Connect with Strava" style="border: none;" />
+          </a>
         </body>
         </html>
       `;
@@ -61,5 +63,4 @@ class HomeController {
 
 module.exports = new HomeController();
 
-      //  <a class="cta" href="/auth/strava">Connect using Strava</a>
- 
+//  <a class="cta" href="/auth/strava">Connect using Strava</a>

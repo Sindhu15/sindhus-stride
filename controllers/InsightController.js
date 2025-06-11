@@ -1,11 +1,7 @@
-const { marked } = require("marked");
 const { openaiInsightFromRuns } = require("../services/aiService");
 const {
-  prepareRun,
-  getQuickChartUrl,
   getConfidenceLevelText,
   generateRunningJourneySection,
-  generateProgressTable,
   getISTTime,
   getLongestRun,
   generateChartUrl,
@@ -96,21 +92,15 @@ class InsightController {
       const sortedRuns = runs.sort(
         (a, b) => new Date(a.start_date) - new Date(b.start_date),
       );
+
       const journeySection = generateRunningJourneySection(sortedRuns);
       const chartSection = generateChartUrl(sortedRuns);
       const firstRunRaw = sortedRuns[0];
       const recentBestRunRaw = getLongestRun(sortedRuns); //sortedRuns[sortedRuns.length - 1];
 
-      // Prepare runs for formatting/chart
-      const firstRun = prepareRun(firstRunRaw);
-      const latestRun = prepareRun(recentBestRunRaw, firstRunRaw);
-
       // Generate insight markdown from AI
-      const { markdownInsight, modelUsed } = await openaiInsightFromRuns(
-        firstRunRaw,
-        recentBestRunRaw,
-        runs,
-      );
+      const { markdownInsight = "", modelUsed = "" } =
+        await openaiInsightFromRuns(firstRunRaw, recentBestRunRaw, runs);
 
       // Prepare plain text for WhatsApp sharing
       const plainTextInsight = markdownInsight.replace(/<\/?[^>]+(>|$)/g, "");
@@ -119,7 +109,6 @@ class InsightController {
         recentBestRunRaw,
       );
 
-      const runTable = generateProgressTable(firstRunRaw, recentBestRunRaw);
       logToGoogleSheet({
         event: "report_generated",
         athleteId,
@@ -135,7 +124,7 @@ class InsightController {
             <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
          <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stride Insight</title>
+    <title>Uplift by Sindhu</title>
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
              Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -199,6 +188,13 @@ class InsightController {
   max-width: 700px;
   margin: 0 auto;
 }
+  .highlight-box {
+      background-color: #fff3e6;
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 5px solid #ffa500;
+      margin-bottom: 20px;
+    }
     </style>
   </head>
   <body>
@@ -206,12 +202,14 @@ class InsightController {
     <div style="display: flex; align-items: center; gap: 1em;">
       <img src="/proxy-image?url=${encodeURIComponent(avatar)}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
       <div>
-        <h3 style="margin: 0; font-size: 1.2em;">
-          ${name}’s Progress Report 🏃‍♀️✨
-        </h3>
-        <p style="margin: 4px 0 0; color: #888; font-size: 0.85em;">
-          <strong>Powered by Sindhu’s Stride</strong>
-        </p>
+        <h2 style="margin-bottom: 0px; margin-top: 0px;">${name}’s Progress Report</h2>
+        <div style="display: flex; align-items: end; gap: 4px; margin-top: 4px; font-size: 0.75em; justify-content: space-between;">
+          <div style="display: flex; align-items: end;">
+            <span style="margin-bottom: 5px; font-weight: 300;">MADE BY</span>
+            <img src="./images/group_orange.svg" alt="Uplift" style="height: 25px; vertical-align: middle; margin-left: 4px;" />
+          </div>
+          <img src="./images/powered-by-strava.svg" alt="Powered by Strava" style="height: 7px; vertical-align: middle; margin-left: 4px; margin-bottom: 6px;" />
+        </div>
       </div>
     </div>
      <div>
@@ -252,7 +250,7 @@ class InsightController {
       console.error(`Insight page error at ${getISTTime()}`, error);
       await logToGoogleSheet({
         event: "error_insights_page",
-        athleteId: athlete.id,
+        athleteId: athleteId || "Unknown",
         ctx,
       });
       ctx.redirect(
