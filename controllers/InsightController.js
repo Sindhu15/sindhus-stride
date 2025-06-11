@@ -9,6 +9,7 @@ const {
 } = require("../utils/formatUtils");
 const { getAthleteProfile } = require("../services/stravaService");
 const logToGoogleSheet = require("../services/logToGoogleSheet");
+const { getRunnerTitle } = require("../utils/helpers");
 
 class InsightController {
   async generateInsight(ctx) {
@@ -69,8 +70,9 @@ class InsightController {
       ctx.cookies.get("athleteId", { signed: true }) || "Unknown";
     console.log(`Athlete ID: ${athleteId}`, accessToken);
     if (!accessToken) {
-      ctx.status = 400;
-      ctx.body = "Access token is required";
+      ctx.redirect(
+        "/error?message=Access token is required. Please click on Back To Home and authorize using your Strava account.",
+      );
       return;
     }
 
@@ -92,6 +94,8 @@ class InsightController {
       const sortedRuns = runs.sort(
         (a, b) => new Date(a.start_date) - new Date(b.start_date),
       );
+
+      const runnerTitle = getRunnerTitle(name, sortedRuns);
 
       const journeySection = generateRunningJourneySection(sortedRuns);
       const chartSection = generateChartUrl(sortedRuns);
@@ -202,7 +206,7 @@ class InsightController {
     <div style="display: flex; align-items: center; gap: 1em;">
       <img src="/proxy-image?url=${encodeURIComponent(avatar)}" alt="${name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
       <div>
-        <h2 style="margin-bottom: 0px; margin-top: 0px;">${name}’s Progress Report</h2>
+        <h2 style="margin-bottom: 0px; margin-top: 0px;">${name}'s Progress Report</h2>
         <div style="display: flex; align-items: end; gap: 4px; margin-top: 4px; font-size: 0.75em; justify-content: space-between;">
           <div style="display: flex; align-items: end;">
             <span style="margin-bottom: 5px; font-weight: 300;">MADE BY</span>
@@ -212,12 +216,14 @@ class InsightController {
         </div>
       </div>
     </div>
+    <p style="font-size: 1.2em; margin-top: 0.5em;"><b>${runnerTitle}</b></p>
      <div>
       ${journeySection}
     </div>
-    <div style="margin-top: 1em"><strong>Reflection: </strong></div>
+    <div style="margin-top: 1em; "><strong>Reflection:</strong></div>
     <div>${markdownInsight}</div>
     <div>${chartSection}</div>
+    <p style="font-size: 1em;">You’ve already done the hard part — you started. Now, keep going.</p>
     </div>
     <div id="saveImageBtn" class="screenshot-banner">
         📸 Want to inspire others? Tap here to download as an image and share!

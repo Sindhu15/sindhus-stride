@@ -74,31 +74,51 @@ function getLongestWeeklyStreakWithRange(runs) {
   return `You've crushed a <b>${longestStreak}-week streak 🔥</b> from ${formattedStart} to ${formattedEnd} — pure consistency and grit!`;
 }
 
-function getRunnerAdjective({ averagePace, totalRuns, totalKm, longestRunKm }) {
-  const adjectives = [];
+function getRunnerTitle(name, allRuns) {
+  const totalRuns = allRuns.length;
+  const totalKm =
+    allRuns.reduce((sum, run) => sum + (run.distance || 0), 0) / 1000; // Convert to km
 
-  // Pace categories (lower = faster)
-  if (averagePace <= 6) adjectives.push("Blazing");
-  else if (averagePace <= 7) adjectives.push("Swift");
-  else if (averagePace <= 8.5) adjectives.push("Steady");
-  else adjectives.push("Determined");
+  const fastestPaceMinPerKm = getFastestPace(allRuns);
 
-  // Distance/endurance
-  if (longestRunKm >= 10 || totalKm > 100) adjectives.push("Enduring");
-  else if (longestRunKm >= 5) adjectives.push("Resilient");
-  else adjectives.push("Gritty");
+  // Adjective: Combines totalKm and totalRuns for a more accurate profile
+  let adjective = "Curious";
+  if (totalKm > 1000 || totalRuns > 200) adjective = "Legendary";
+  else if (totalKm > 700 || totalRuns > 150) adjective = "Unstoppable";
+  else if (totalKm > 500 || totalRuns > 100) adjective = "Resilient";
+  else if (totalKm > 300 || totalRuns > 70) adjective = "Steady";
+  else if (totalKm > 150 || totalRuns > 40) adjective = "Driven";
+  else if (totalKm > 50 || totalRuns > 20) adjective = "Rising";
 
-  // Consistency
-  if (totalRuns >= 20) adjectives.push("Disciplined");
-  else if (totalRuns >= 10) adjectives.push("Committed");
-  else adjectives.push("Passionate");
+  // Power Word: Prioritizes pace, then total km
+  let powerWord = "Runner";
+  if (fastestPaceMinPerKm < 4.5) powerWord = "Sprinter";
+  else if (fastestPaceMinPerKm < 5.5) powerWord = "Dasher";
+  else if (totalKm > 300 || totalRuns > 100) powerWord = "Strider";
+  else if (totalKm > 150 || totalRuns > 50) powerWord = "Charger";
+  else powerWord = "Explorer";
 
-  // Combine randomly from the pool
-  const finalAdjective =
-    adjectives[Math.floor(Math.random() * adjectives.length)];
-  return finalAdjective;
+  return `🏅 ${name}, the ${adjective} ${powerWord}!`;
+}
+
+function getFastestPace(allRuns) {
+  if (!allRuns || allRuns.length === 0) return null;
+
+  let fastestPace = Infinity;
+
+  allRuns.forEach((run) => {
+    if (run.distance > 0 && run.moving_time > 0) {
+      const paceInMinPerKm = run.moving_time / 60 / (run.distance / 1000); // min/km
+      if (paceInMinPerKm < fastestPace) {
+        fastestPace = paceInMinPerKm;
+      }
+    }
+  });
+
+  return fastestPace === Infinity ? null : parseFloat(fastestPace.toFixed(2));
 }
 
 module.exports = {
   getLongestWeeklyStreakWithRange,
+  getRunnerTitle,
 };
