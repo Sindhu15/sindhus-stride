@@ -33,16 +33,37 @@ async function fetchActivities(accessToken) {
   }
 
   console.log("Making API call to Strava");
-  const response = await axios.get(
-    "https://www.strava.com/api/v3/athlete/activities",
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      params: { per_page: 100, page: 1 },
-    },
-  );
-  const runs = response.data.filter((a) => a.type === "Run");
+  const activities = await fetchAllActivities(accessToken);
+  const runs = activities.filter((a) => a.type === "Run");
   setCachedActivities(hash, runs);
   return runs;
+}
+
+async function fetchAllActivities(accessToken) {
+  let allActivities = [];
+  let page = 1;
+  const perPage = 200; // max allowed
+
+  while (true) {
+    const response = await axios.get(
+      "https://www.strava.com/api/v3/athlete/activities",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: { per_page: perPage, page },
+      },
+    );
+
+    const activities = response.data;
+
+    if (activities.length === 0) {
+      break; // no more activities
+    }
+
+    allActivities = allActivities.concat(activities);
+    page++;
+  }
+
+  return allActivities;
 }
 
 async function getAthleteProfile(accessToken) {

@@ -222,12 +222,15 @@ class InsightController {
     <div style="margin-top: 1em; "><strong>Reflection:</strong></div>
     <div>${markdownInsight}</div>
     <div>${chartSection}</div>
-    <p style="font-size: 1em;">You’ve already done the hard part — you started. Now, keep going.</p>
+    <p style="font-size: 1em;"><b>You’ve already done the hard part — you started. Now, keep going.</b></p>
     </div>
     <div id="saveImageBtn" class="screenshot-banner">
-        📸 Want to inspire others? Tap here to download as an image and share!
+        📸 Want to inspire others? <b>Tap here to download as an image</b> and share!
     </div>
-    <a class="feedback-section" href="https://forms.gle/FDJhkNz8MvLo7wm77" class="cta">I'd love your feedback</a>
+    <div style="display: flex; justify-content: space-evenly; margin-top: 20px;">
+      <a style="width:40%;" class="feedback-section" href="./howtoreadreport.html" class="cta">Help</a>
+      <a style="width:40%;"  class="feedback-section" href="https://forms.gle/FDJhkNz8MvLo7wm77" class="cta">Feedback</a>
+    <div>
     <script>
     const fileName = "${name}";
   document.getElementById("saveImageBtn").addEventListener("click", function () {

@@ -156,7 +156,10 @@ function generateRunningJourneySection(allRuns) {
   const longestRun = allRuns.reduce((a, b) =>
     a.distance > b.distance ? a : b,
   );
-  const fastestRun = allRuns.reduce((a, b) => {
+
+  const validRuns = allRuns.filter((run) => run.distance > 1000); // distance in meters
+
+  const fastestRun = validRuns.reduce((a, b) => {
     const paceA = a.moving_time / (a.distance / 1000);
     const paceB = b.moving_time / (b.distance / 1000);
     return paceA < paceB ? a : b;
@@ -203,7 +206,7 @@ function getMileStoneTable(firstRun, longestRun, fastestRun) {
       </thead>
       <tbody>
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">First</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">First Run</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(firstRun.start_date)}</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${(firstRun.distance / 1000).toFixed(1)} km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(firstRun.moving_time, firstRun.distance)} min/km</td>
@@ -258,7 +261,9 @@ function generateChartUrl(allRuns) {
     JSON.stringify(chartConfig),
   )}`;
   return `<p><b>Your consistency in Kilometers 📊 </b></p>
-          <img crossorigin="anonymous" src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />`;
+          <img crossorigin="anonymous" src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />
+          <div>This chart shows the distance you ran in each session helping you spot your running consistency over time.</div>
+          `;
 }
 
 function generateProgressTable(firstRun, latestRun) {

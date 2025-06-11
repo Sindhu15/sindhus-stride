@@ -71,7 +71,7 @@ function getLongestWeeklyStreakWithRange(runs) {
   const formattedStart = formatMonthYear(streakDetails.rangeStart);
   const formattedEnd = formatMonthYear(streakDetails.rangeEnd);
 
-  return `You've crushed a <b>${longestStreak}-week streak 🔥</b> from ${formattedStart} to ${formattedEnd} — pure consistency and grit!`;
+  return `<b>${longestStreak} weeks in a row 🔥</b> - longest weekly streak you've maintained , logging at least one run every single week from <b>${formattedStart} to ${formattedEnd} </b>. That’s real commitment!`;
 }
 
 function getRunnerTitle(name, allRuns) {
