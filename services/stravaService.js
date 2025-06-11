@@ -11,7 +11,6 @@ function setCachedActivities(athleteId, activities) {
   activityCache.set(athleteId, activities);
 }
 
-
 async function exchangeCodeForToken(code) {
   const response = await axios.post("https://www.strava.com/oauth/token", {
     client_id: process.env.STRAVA_CLIENT_ID,
@@ -24,13 +23,14 @@ async function exchangeCodeForToken(code) {
 
 async function fetchActivities(accessToken) {
   const hash = accessToken
-      ? crypto.createHash("sha256").update(String(accessToken)).digest("hex")
-      : "";
+    ? crypto.createHash("sha256").update(String(accessToken)).digest("hex")
+    : "";
 
   const cached = getCachedActivities(hash);
-  if (cached){
+  if (cached) {
     console.log("Reading runs from cache");
-    return cached;}
+    return cached;
+  }
 
   console.log("Making API call to Strava");
   const response = await axios.get(
@@ -40,7 +40,7 @@ async function fetchActivities(accessToken) {
       params: { per_page: 100, page: 1 },
     },
   );
-  const runs =  response.data.filter((a) => a.type === "Run");
+  const runs = response.data.filter((a) => a.type === "Run");
   setCachedActivities(hash, runs);
   return runs;
 }

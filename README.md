@@ -1,6 +1,6 @@
-# 🏃‍♀️ Sindhu's Stride
+# 🏃‍♀️ Uplift
 
-**Sindhu's Stride** is a beginner-friendly, privacy-first running insights app that connects with Strava to generate fun and motivational running progress reports.
+**Uplift** is a beginner-friendly, privacy-first running insights app that connects with Strava to generate fun and motivational running progress reports.
 
 Built with love to celebrate every runner’s journey — from their very first run to their latest milestone.
 

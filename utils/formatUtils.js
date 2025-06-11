@@ -1,3 +1,5 @@
+const { getLongestWeeklyStreakWithRange } = require("./helpers");
+
 const getISTTime = () => {
   return new Date().toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -50,6 +52,20 @@ function prepareRun(run, referenceRun = null) {
     pace: paceFormatted,
     change,
   };
+}
+
+function getLongestRun(runs) {
+  return runs.sort((a, b) => b.distance - a.distance)[0];
+}
+
+function getBestPaceRun(runs) {
+  return runs
+    .filter((run) => run.distance > 2000) // Only meaningful runs
+    .sort((a, b) => {
+      const paceA = a.moving_time / (a.distance / 1000); // min/km
+      const paceB = b.moving_time / (b.distance / 1000);
+      return paceA - paceB; // ascending = faster pace first
+    })[0];
 }
 
 function getQuickChartUrl(firstRun, latestRun, type = "pace") {
@@ -116,15 +132,15 @@ function getConfidenceLevelText(firstRun, latestRun) {
   }
 }
 
+const formatDate = (d) =>
+  new Date(d).toLocaleDateString("en-IN", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
 // Generates a Running Journey section with longest run, fastest pace, total runs, and a line chart of all runs
 function generateRunningJourneySection(allRuns) {
-  const formatDate = (d) =>
-    new Date(d).toLocaleDateString("en-IN", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-
   const formatPace = (movingTimeSec, distanceMeters) => {
     if (!movingTimeSec || !distanceMeters || distanceMeters === 0) return "—";
     const paceSecPerKm = movingTimeSec / (distanceMeters / 1000);
@@ -135,6 +151,7 @@ function generateRunningJourneySection(allRuns) {
 
   if (!allRuns || allRuns.length === 0) return "";
 
+  const firstRun = allRuns[0];
   const totalRuns = allRuns.length;
   const longestRun = allRuns.reduce((a, b) =>
     a.distance > b.distance ? a : b,
@@ -145,12 +162,72 @@ function generateRunningJourneySection(allRuns) {
     return paceA < paceB ? a : b;
   });
 
+  const firstRunText = `<b>${(firstRun.distance / 1000).toFixed(1)}K</b> at a pace of <strong>${formatPace(firstRun.moving_time, firstRun.distance)}</strong> on <strong>${formatDate(firstRun.start_date)}</strong>`;
   const longestRunText = `<b>${(longestRun.distance / 1000).toFixed(1)}K</b> on <strong>${formatDate(longestRun.start_date)}</strong>`;
   const totalDistanceKm = (
     allRuns.reduce((acc, run) => acc + run.distance, 0) / 1000
   ).toFixed(1);
   const fastestRunText = `<b>${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km</b> on <strong>${formatDate(fastestRun.start_date)}</strong>`;
 
+  const milestoneTable = getMileStoneTable(firstRun, longestRun, fastestRun);
+
+  const longestWeeklyStreakText = getLongestWeeklyStreakWithRange(allRuns);
+
+  // <div>🏁 From <b>${(firstRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(firstRun.moving_time, firstRun.distance)} m/km to <b>${(longestRun.distance / 1000).toFixed(1)} km</b> at ${formatPace(longestRun.moving_time, longestRun.distance)} min/km — what a journey! </div>
+
+  return `
+    <div>
+      <p><strong>${totalRuns}</strong> total runs🏃‍♀️ covering <strong>${totalDistanceKm} kms</strong>. Every step counts, and you've taken many!</p>
+      <div>${longestWeeklyStreakText}</div>
+      <p> ${milestoneTable}
+    </div>
+  `;
+}
+
+const formatTime = (seconds) => {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min}m ${sec}s`;
+};
+
+function getMileStoneTable(firstRun, longestRun, fastestRun) {
+  return `<table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Milestone</th>
+          <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+          <th style="border: 1px solid #ddd; padding: 8px;">Distance</th>
+          <th style="border: 1px solid #ddd; padding: 8px;">Pace</th>
+          <th style="border: 1px solid #ddd; padding: 8px;">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">First</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(firstRun.start_date)}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(firstRun.distance / 1000).toFixed(1)} km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(firstRun.moving_time, firstRun.distance)} min/km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(firstRun.moving_time)}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">Longest</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(longestRun.start_date)}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(longestRun.distance / 1000).toFixed(1)} km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(longestRun.moving_time, longestRun.distance)} min/km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(longestRun.moving_time)}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">Fastest</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(fastestRun.start_date)}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(fastestRun.distance / 1000).toFixed(1)} km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(fastestRun.moving_time, fastestRun.distance)} min/km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(fastestRun.moving_time)}</td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+function generateChartUrl(allRuns) {
   const labels = allRuns.map((r) => formatDate(r.start_date));
   const data = allRuns.map((r) => (r.distance / 1000).toFixed(2));
 
@@ -180,17 +257,8 @@ function generateRunningJourneySection(allRuns) {
   const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(
     JSON.stringify(chartConfig),
   )}`;
-
-  return `
-    <div>
-      <h4>Your Running Journey So Far 🛤️  </h4>
-      <p>🏃‍♀️ <strong>Total Runs:</strong> <strong>${totalRuns}</strong> covering <strong>${totalDistanceKm} kms</strong>. Every step counts, and you've taken many!</p>
-      <p>🏅 <strong>Longest Run:</strong> ${longestRunText}</p>
-      <p>⚡ <strong>Fastest Pace:</strong> ${fastestRunText}</p>
-      <p><b>Your consistency in Kilometers 📊 </b></p>
-      <img crossorigin="anonymous" src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />
-    </div>
-  `;
+  return `<p><b>Your consistency in Kilometers 📊 </b></p>
+          <img crossorigin="anonymous" src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />`;
 }
 
 function generateProgressTable(firstRun, latestRun) {
@@ -226,13 +294,13 @@ function generateProgressTable(firstRun, latestRun) {
         <tr>
           <td style="padding: 10px;">First Run</td>
           <td style="padding: 10px;">${formatDate(firstRun.start_date)}</td>
-          <td style="text-align: center; padding: 10px;">${firstDistanceKm.toFixed(1) + 'K'}</td>
+          <td style="text-align: center; padding: 10px;">${firstDistanceKm.toFixed(1) + "K"}</td>
           <td style="text-align: center; padding: 10px;">${formatPace(firstRun.moving_time, firstRun.distance)}</td>
         </tr>
         <tr style="background-color: #fafafa; font-weight: bold;">
-          <td style="padding: 10px;">Latest Run</td>
+          <td style="padding: 10px;">Recent Long Run</td>
           <td style="padding: 10px;">${formatDate(latestRun.start_date)}</td>
-          <td style="text-align: center; padding: 10px;">${latestDistanceKm.toFixed(1) + 'K'}</td>
+          <td style="text-align: center; padding: 10px;">${latestDistanceKm.toFixed(1) + "K"}</td>
           <td style="text-align: center; padding: 10px;">${formatPace(latestRun.moving_time, latestRun.distance)}</td>
         </tr>
       </tbody>
@@ -251,6 +319,22 @@ async function fetchImageAsBase64(url) {
   });
 }
 
+const closingLines = [
+  "With every run, you're proving what's possible.",
+  "Keep showing up — you're doing something amazing.",
+  "You’re not just running. You’re rewriting your story.",
+  "Step by step, you're becoming unstoppable.",
+  "Your journey is inspiring — keep at it!",
+  "Keep chasing that finish line — you've got this.",
+  "You're stronger than you think, and it shows.",
+  "Every stride is a statement: you're all in.",
+  "Progress like yours deserves to be celebrated.",
+  "This is just the beginning. Let’s keep going!",
+];
+
+const selectedLine =
+  closingLines[Math.floor(Math.random() * closingLines.length)];
+
 module.exports = {
   formatPace,
   prepareRun,
@@ -259,5 +343,8 @@ module.exports = {
   generateRunningJourneySection,
   generateProgressTable,
   getISTTime,
-  fetchImageAsBase64
+  fetchImageAsBase64,
+  getLongestRun,
+  generateChartUrl,
+  selectedLine,
 };
