@@ -95,7 +95,7 @@ class InsightController {
         (a, b) => new Date(a.start_date) - new Date(b.start_date),
       );
 
-      const runnerTitle = getRunnerTitle(name, sortedRuns);
+      const { runnerTitle } = getRunnerTitle(name, sortedRuns);
 
       const journeySection = generateRunningJourneySection(sortedRuns);
       const chartSection = generateChartUrl(sortedRuns);

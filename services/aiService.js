@@ -16,7 +16,6 @@ All Runs Count: ${allRuns?.length}
   `;
 }
 
-
 async function openaiInsightFromRuns(rawFirstRun, rawLatestRun, runs) {
   const firstRun = prepareRun(rawFirstRun);
   const latestRun = prepareRun(rawLatestRun);

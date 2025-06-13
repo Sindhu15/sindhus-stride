@@ -1,3 +1,5 @@
+const { formatISO, startOfISOWeek } = require("date-fns");
+
 function getLongestWeeklyStreakWithRange(runs) {
   if (!runs || runs.length === 0)
     return {
@@ -74,51 +76,79 @@ function getLongestWeeklyStreakWithRange(runs) {
   return `<b>${longestStreak} weeks in a row 🔥</b> - longest weekly streak you've maintained , logging at least one run every single week from <b>${formattedStart} to ${formattedEnd} </b>. That’s real commitment!`;
 }
 
-function getRunnerTitle(name, allRuns) {
+function getRunnerTitleWithDescription(name, allRuns) {
   const totalRuns = allRuns.length;
-  const totalKm =
-    allRuns.reduce((sum, run) => sum + (run.distance || 0), 0) / 1000; // Convert to km
+  const totalKm = +(
+    allRuns.reduce((sum, run) => sum + (run.distance || 0), 0) / 1000
+  ).toFixed(1);
+  const fastestPace = getFastestPace(allRuns); // in min/km
 
-  const fastestPaceMinPerKm = getFastestPace(allRuns);
-
-  // Adjective: Combines totalKm and totalRuns for a more accurate profile
+  // Tier: Adjective
   let adjective = "Curious";
-  if (totalKm > 1000 || totalRuns > 200) adjective = "Legendary";
-  else if (totalKm > 700 || totalRuns > 150) adjective = "Unstoppable";
+  if (totalKm > 5000 || totalRuns > 700) adjective = "Titan";
+  else if (totalKm > 3500 || totalRuns > 500) adjective = "Mythic";
+  else if (totalKm > 2000 || totalRuns > 350) adjective = "Elite";
+  else if (totalKm > 1200 || totalRuns > 250) adjective = "Legendary";
+  else if (totalKm > 800 || totalRuns > 180) adjective = "Unstoppable";
   else if (totalKm > 500 || totalRuns > 100) adjective = "Resilient";
   else if (totalKm > 300 || totalRuns > 70) adjective = "Steady";
   else if (totalKm > 150 || totalRuns > 40) adjective = "Driven";
   else if (totalKm > 50 || totalRuns > 20) adjective = "Rising";
 
-  // Power Word: Prioritizes pace, then total km
+  // Power Word
   let powerWord = "Runner";
-  if (fastestPaceMinPerKm < 4.5) powerWord = "Sprinter";
-  else if (fastestPaceMinPerKm < 5.5) powerWord = "Dasher";
+  if (fastestPace && fastestPace < 3.5) powerWord = "Pro";
+  else if (fastestPace < 4.2) powerWord = "Sprinter";
+  else if (fastestPace < 5.2) powerWord = "Dasher";
   else if (totalKm > 300 || totalRuns > 100) powerWord = "Strider";
   else if (totalKm > 150 || totalRuns > 50) powerWord = "Charger";
   else powerWord = "Explorer";
 
-  return `${name}, the ${adjective} ${powerWord}!🏅 `;
+  const runnerTitle = `${name}, the ${adjective} ${powerWord}! 🏅`;
+
+  // Dynamic description
+  const descriptionParts = [];
+  if (totalKm >= 50) descriptionParts.push(`over ${Math.round(totalKm)} km`);
+  if (totalRuns >= 20) descriptionParts.push(`${totalRuns}+ runs`);
+  if (fastestPace)
+    descriptionParts.push(`a top pace of ${fastestPace.toFixed(2)} min/km`);
+
+  const description =
+    descriptionParts.length > 0
+      ? `You've logged ${descriptionParts.join(", ")}. This is ${adjective.toLowerCase()} level dedication.`
+      : "Your journey has just begun. Keep going!";
+
+  return { runnerTitle, description };
 }
 
-function getFastestPace(allRuns) {
-  if (!allRuns || allRuns.length === 0) return null;
+function getWeeklyPaceData(runs) {
+  const weeklyData = new Map();
 
-  let fastestPace = Infinity;
+  runs.forEach((run) => {
+    const date = new Date(run.start_date);
+    const weekKey = formatISO(startOfISOWeek(date), { representation: "date" }); // e.g., "2024-05-13"
+    const pace = run.moving_time / (run.distance / 1000); // seconds/km
 
-  allRuns.forEach((run) => {
-    if (run.distance > 0 && run.moving_time > 0) {
-      const paceInMinPerKm = run.moving_time / 60 / (run.distance / 1000); // min/km
-      if (paceInMinPerKm < fastestPace) {
-        fastestPace = paceInMinPerKm;
-      }
+    if (!weeklyData.has(weekKey)) {
+      weeklyData.set(weekKey, { totalPace: 0, count: 0 });
     }
+
+    const week = weeklyData.get(weekKey);
+    week.totalPace += pace;
+    week.count += 1;
   });
 
-  return fastestPace === Infinity ? null : parseFloat(fastestPace.toFixed(2));
+  // Now format into an array for charting
+  const chartData = Array.from(weeklyData.entries()).map(([week, data]) => ({
+    week,
+    avgPace: +(data.totalPace / data.count / 60).toFixed(2), // pace in minutes/km
+  }));
+
+  return chartData.sort((a, b) => new Date(a.week) - new Date(b.week));
 }
 
 module.exports = {
   getLongestWeeklyStreakWithRange,
   getRunnerTitle,
+  getWeeklyPaceData,
 };

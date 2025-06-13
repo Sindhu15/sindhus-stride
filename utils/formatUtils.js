@@ -233,6 +233,7 @@ function getMileStoneTable(firstRun, longestRun, fastestRun) {
 function generateChartUrl(allRuns) {
   const labels = allRuns.map((r) => formatDate(r.start_date));
   const data = allRuns.map((r) => (r.distance / 1000).toFixed(2));
+  const weeklyData = getWeeklyPaceData(allRuns);
 
   const chartConfig = {
     type: "line",
@@ -241,7 +242,7 @@ function generateChartUrl(allRuns) {
       datasets: [
         {
           label: "Distance (km)",
-          data,
+          data: weeklyData,
           fill: true,
           tension: 0.4,
         },
