@@ -257,7 +257,6 @@ function generateChartUrl(allRuns) {
   const labels = allRuns.map((r) => formatDate(r.start_date));
   const data = allRuns.map((r) => (r.distance / 1000).toFixed(2));
   const weeklyData = getSmartWeeklyDistanceData(allRuns, 175);
-  console.log(data, "data");
   const chartConfig = {
     type: "line",
     data: {

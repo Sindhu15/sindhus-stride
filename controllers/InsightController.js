@@ -82,6 +82,7 @@ class InsightController {
       const activities =
         await require("../services/stravaService").fetchActivities(accessToken);
       const { name, avatar } = await getAthleteProfile(accessToken);
+      console.log(await getAthleteProfile(accessToken));
       const runs = activities.filter((a) => a.type === "Run");
 
       if (runs.length < 2) {
