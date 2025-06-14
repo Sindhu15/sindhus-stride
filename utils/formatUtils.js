@@ -1,4 +1,7 @@
-const { getLongestWeeklyStreakWithRange } = require("./helpers");
+const {
+  getLongestWeeklyStreakWithRange,
+  getSmartWeeklyDistanceData,
+} = require("./helpers");
 
 const getISTTime = () => {
   return new Date().toLocaleString("en-IN", {
@@ -153,6 +156,7 @@ function generateRunningJourneySection(allRuns) {
 
   const firstRun = allRuns[0];
   const totalRuns = allRuns.length;
+  const recentRun = allRuns[allRuns.length - 1];
   const longestRun = allRuns.reduce((a, b) =>
     a.distance > b.distance ? a : b,
   );
@@ -172,7 +176,12 @@ function generateRunningJourneySection(allRuns) {
   ).toFixed(1);
   const fastestRunText = `<b>${formatPace(fastestRun.moving_time, fastestRun.distance)}min/km</b> on <strong>${formatDate(fastestRun.start_date)}</strong>`;
 
-  const milestoneTable = getMileStoneTable(firstRun, longestRun, fastestRun);
+  const milestoneTable = getMileStoneTable(
+    firstRun,
+    longestRun,
+    fastestRun,
+    recentRun,
+  );
 
   const longestWeeklyStreakText = getLongestWeeklyStreakWithRange(allRuns);
 
@@ -188,12 +197,18 @@ function generateRunningJourneySection(allRuns) {
 }
 
 const formatTime = (seconds) => {
-  const min = Math.floor(seconds / 60);
-  const sec = seconds % 60;
-  return `${min}m ${sec}s`;
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hrs > 0) {
+    return `${hrs}h ${mins}m`;
+  } else {
+    return `${mins}m ${secs}s`;
+  }
 };
 
-function getMileStoneTable(firstRun, longestRun, fastestRun) {
+function getMileStoneTable(firstRun, longestRun, fastestRun, recentRun) {
   return `<table style="width:100%; border-collapse: collapse; margin-top: 10px;">
       <thead>
         <tr>
@@ -212,6 +227,13 @@ function getMileStoneTable(firstRun, longestRun, fastestRun) {
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(firstRun.moving_time, firstRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(firstRun.moving_time)}</td>
         </tr>
+         <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">Recent</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(recentRun.start_date)}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(recentRun.distance / 1000).toFixed(1)} km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(recentRun.moving_time, recentRun.distance)} min/km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(recentRun.moving_time)}</td>
+        </tr>
         <tr>
           <td style="border: 1px solid #ddd; padding: 8px;">Longest</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(longestRun.start_date)}</td>
@@ -226,6 +248,7 @@ function getMileStoneTable(firstRun, longestRun, fastestRun) {
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(fastestRun.moving_time, fastestRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(fastestRun.moving_time)}</td>
         </tr>
+        
       </tbody>
     </table>`;
 }
@@ -233,16 +256,16 @@ function getMileStoneTable(firstRun, longestRun, fastestRun) {
 function generateChartUrl(allRuns) {
   const labels = allRuns.map((r) => formatDate(r.start_date));
   const data = allRuns.map((r) => (r.distance / 1000).toFixed(2));
-  const weeklyData = getWeeklyPaceData(allRuns);
-
+  const weeklyData = getSmartWeeklyDistanceData(allRuns, 175);
+  console.log(data, "data");
   const chartConfig = {
     type: "line",
     data: {
-      labels,
+      labels: weeklyData?.x,
       datasets: [
         {
           label: "Distance (km)",
-          data: weeklyData,
+          data: weeklyData?.y,
           fill: true,
           tension: 0.4,
         },
@@ -258,13 +281,14 @@ function generateChartUrl(allRuns) {
     },
   };
 
+  const help = weeklyData?.help;
+
   const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(
     JSON.stringify(chartConfig),
   )}`;
   return `<p><b>Your consistency in Kilometers 📊 </b></p>
           <img crossorigin="anonymous" src="${chartUrl}" style="width:100%; max-width:600px; margin-top: 2px; border-radius: 8px;" />
-          <div>This chart shows the distance you ran in each session helping you spot your running consistency over time.</div>
-          `;
+          ${help}`;
 }
 
 function generateProgressTable(firstRun, latestRun) {

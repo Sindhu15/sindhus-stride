@@ -76,7 +76,22 @@ function getLongestWeeklyStreakWithRange(runs) {
   return `<b>${longestStreak} weeks in a row 🔥</b> - longest weekly streak you've maintained , logging at least one run every single week from <b>${formattedStart} to ${formattedEnd} </b>. That’s real commitment!`;
 }
 
-function getRunnerTitleWithDescription(name, allRuns) {
+function getFastestPace(runs) {
+  if (!runs || runs.length === 0) return null;
+
+  let fastest = Infinity;
+
+  runs.forEach((run) => {
+    if (run.distance > 0 && run.moving_time > 0) {
+      const pace = run.moving_time / 60 / (run.distance / 1000); // min/km
+      if (pace < fastest) fastest = pace;
+    }
+  });
+
+  return fastest === Infinity ? null : +fastest.toFixed(2);
+}
+
+function getRunnerTitle(name, allRuns) {
   const totalRuns = allRuns.length;
   const totalKm = +(
     allRuns.reduce((sum, run) => sum + (run.distance || 0), 0) / 1000
@@ -118,37 +133,74 @@ function getRunnerTitleWithDescription(name, allRuns) {
       ? `You've logged ${descriptionParts.join(", ")}. This is ${adjective.toLowerCase()} level dedication.`
       : "Your journey has just begun. Keep going!";
 
-  return { runnerTitle, description };
+  return runnerTitle;
 }
 
-function getWeeklyPaceData(runs) {
-  const weeklyData = new Map();
+function getSmartWeeklyDistanceData(runs, maxPoints = 100) {
+  if (!runs || runs.length === 0) return { x: [], y: [], downsampled: false };
+
+  // Case 1: ≤ maxPoints runs → show each run as a point
+  if (runs.length <= maxPoints) {
+    const x = runs.map((r) => r.start_date.slice(0, 10));
+    const y = runs.map((r) => +(r.distance / 1000).toFixed(2));
+    const help = `<div>This chart shows the distance you ran in each session helping you spot your running consistency over time.</div>`;
+    return { x, y, downsampled: false, help };
+  }
+
+  // Case 2: Aggregate weekly
+  const weeklyMap = new Map();
 
   runs.forEach((run) => {
-    const date = new Date(run.start_date);
-    const weekKey = formatISO(startOfISOWeek(date), { representation: "date" }); // e.g., "2024-05-13"
-    const pace = run.moving_time / (run.distance / 1000); // seconds/km
+    if (!run.distance || !run.start_date) return;
 
-    if (!weeklyData.has(weekKey)) {
-      weeklyData.set(weekKey, { totalPace: 0, count: 0 });
+    const date = new Date(run.start_date);
+    const weekKey = formatISO(startOfISOWeek(date), { representation: "date" });
+
+    if (!weeklyMap.has(weekKey)) {
+      weeklyMap.set(weekKey, { totalDistance: 0, count: 0 });
     }
 
-    const week = weeklyData.get(weekKey);
-    week.totalPace += pace;
-    week.count += 1;
+    const entry = weeklyMap.get(weekKey);
+    entry.totalDistance += run.distance / 1000;
+    entry.count += 1;
   });
 
-  // Now format into an array for charting
-  const chartData = Array.from(weeklyData.entries()).map(([week, data]) => ({
-    week,
-    avgPace: +(data.totalPace / data.count / 60).toFixed(2), // pace in minutes/km
-  }));
+  let weeklyArray = Array.from(weeklyMap.entries()).map(
+    ([x, { totalDistance, count }]) => ({
+      x,
+      y: +(totalDistance / count).toFixed(2), // average distance per run that week
+    }),
+  );
 
-  return chartData.sort((a, b) => new Date(a.week) - new Date(b.week));
+  const downsampled = weeklyArray.length > maxPoints;
+
+  if (downsampled) {
+    // Instead of random, pick top 100 best average weeks
+    weeklyArray = weeklyArray
+      .sort((a, b) => b.y - a.y) // highest average distance first
+      .slice(0, maxPoints)
+      .sort((a, b) => new Date(a.x) - new Date(b.x)); // restore chronological order
+  }
+
+  const x = weeklyArray.map((point) => point.x);
+  const y = weeklyArray.map((point) => point.y);
+  const help = `<div>This chart shows the weekly average distance helping you spot your running consistency over time.</div>`;
+
+  return { x, y, downsampled, help };
+}
+
+// Helper
+function getRandomSample(arr, count) {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
 }
 
 module.exports = {
   getLongestWeeklyStreakWithRange,
   getRunnerTitle,
-  getWeeklyPaceData,
+  getSmartWeeklyDistanceData,
 };
