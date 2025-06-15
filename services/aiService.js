@@ -25,6 +25,17 @@ function getRandomBreakfastLine() {
 function buildPrompt(runs, firstRun, lastRun) {
   if (!runs || runs.length === 0) return "No data available yet.";
 
+  const formatRunSummary = (run) => {
+    if (!run) return "No data.";
+    const date = new Date(run.start_date).toDateString();
+    const distance = (run.distance / 1000).toFixed(2);
+    const pace =
+      run.moving_time && run.distance
+        ? (run.moving_time / 60 / (run.distance / 1000)).toFixed(2)
+        : "N/A";
+    return `Date: ${date}, Distance: ${distance} km, Pace: ${pace} min/km`;
+  };
+
   const currentYear = new Date().getFullYear();
   const runsThisYear = runs.filter(
     (run) => new Date(run.start_date).getFullYear() === currentYear,
@@ -59,6 +70,7 @@ function buildPrompt(runs, firstRun, lastRun) {
   const hourFrequency = Array(24).fill(0);
   const monthMap = new Map();
 
+  let longestRun = runs[0];
   runs.forEach((run) => {
     const date = new Date(run.start_date);
     const week = formatISO(startOfISOWeek(date), { representation: "date" });
@@ -71,6 +83,7 @@ function buildPrompt(runs, firstRun, lastRun) {
       year: "numeric",
     });
     monthMap.set(month, (monthMap.get(month) || 0) + (run.distance || 0));
+    if (run.distance > longestRun.distance) longestRun = run;
   });
 
   const weeklyData = Array.from(weeklyMap.entries()).map(([week, weekRuns]) => {
@@ -114,29 +127,36 @@ function buildPrompt(runs, firstRun, lastRun) {
     funFacts.push(`Their highest mileage month was ${peakMonth[0]}.`);
   }
 
-  const earlyAvgKm =
-    runs.slice(0, 10).reduce((s, r) => s + r.distance, 0) / 10 / 1000;
-  const recentAvgKm =
-    runs.slice(-10).reduce((s, r) => s + r.distance, 0) / 10 / 1000;
-  if (recentAvgKm > earlyAvgKm + 1)
-    funFacts.push("Their recent runs are longer than when they started.");
-  const dipWeeks = weeklyData.filter((w) => w.distance < 3);
-  if (dipWeeks.length > 0)
-    funFacts.push("They had low-activity weeks but always bounced back.");
-  const comeback = weeklyData.find((w, i, arr) => {
-    if (i < 2 || i >= arr.length - 2) return false;
-    const prev = arr[i - 1].distance;
-    const curr = w.distance;
-    const next = arr[i + 1].distance;
-    return prev < 3 && curr > 5 && next > 5;
-  });
-  if (comeback) funFacts.push("They bounced back strongly after a dip.");
+  const isBeginner = runs.length <= 15;
+
+  const firstKm = firstRun?.distance / 1000 || 0;
+  const longestKm = longestRun?.distance / 1000 || 0;
+  const paceFirst =
+    firstRun?.moving_time && firstRun?.distance
+      ? firstRun.moving_time / (firstRun.distance / 1000) / 60
+      : null;
+  const paceChange =
+    paceFirst && fastestPace ? (paceFirst - fastestPace).toFixed(2) : null;
+
+  if (isBeginner) {
+    return `
+You are a friendly and supportive running coach who writes short, encouraging progress notes.
+
+The runner has two runs: their very first and their most recent. Write a warm, motivational paragraph celebrating their progress. Highlight any improvements in pace (min/km), distance (km), or overall consistency.
+
+Use a personal and positive tone. Mention key stats if helpful — but keep it simple, uplifting, and easy to read. Avoid bullet points or tables. Keep it concise.
+
+First Run: ${JSON.stringify(firstRun)}
+Longest Run: ${JSON.stringify(lastRun)}`;
+  }
 
   return `
 Runner Journey:
+  Latest Run: ${JSON.stringify(lastRun)}
 - Fastest pace: ${fastestPace ? `${fastestPace.toFixed(2)} min/km` : "N/A"}
 - First run: ${firstRunDate}, Last run: ${lastRunDate}
 - Average pace: ${avgPace.toFixed(2)} min/km
+- Longest run: ${longestKm.toFixed(2)} km
 - 5Ks in ${currentYear}: ${countByCategory["5k"]}
 - 10Ks in ${currentYear}: ${countByCategory["10k"]}
 - Half marathons in ${currentYear}: ${countByCategory["half"]}
@@ -144,17 +164,23 @@ Runner Journey:
 - Weekly pace trend (last 6): [${recentPaces.join(", ")}]
 - Weekly distance trend (last 6): [${recentDistances.join(", ")}]
 
-Insights:
+Stats and Insights:
 ${funFacts
-  .slice(0, 4)
+  .slice(0, 5)
   .map((f) => "- " + f)
   .join("\n")}
 
-Write a short, motivating paragraph (max 150 words) that:
-- Highlights their growth and patterns
-- Include how many 5Ks, 10Ks, half or full marathons or some helpful status in ${currentYear}
-- Encourages them with warmth and joy and fun.
-- Feels like a note from a supportive friend. Hype them up. Be their cheerleader.`;
+You are a seasoned running coach who offers personalized, data-driven encouragement to experienced runners.
+
+This runner has logged ${runs.length} runs covering over ${totalKm.toFixed(0)} km. Write a motivating note(max 130 words) that:
+
+- Reflects their training consistency and discipline
+- Highlights their growth, effort, and resilience
+- Mentions category achievements in numbers (10Ks, half, full etc.) in ${currentYear}
+- Includes observations from recent pace/distance trends
+- Reflect on how their pace or distance has changed compared to when they started
+- Compares their first run with their longest run
+- Feels like a warm, supportive nudge to keep going. Use a positive, fun and cheerful tone.`;
 }
 
 // Fastest pace helper

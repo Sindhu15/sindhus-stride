@@ -220,7 +220,7 @@ class InsightController {
      <div>
       ${journeySection}
     </div>
-    <div style="margin-top: 1em; "><strong>Reflection:</strong></div>
+    <div style="margin-top: 1em; "><strong>AI Insight:</strong></div>
     <div>${markdownInsight}</div>
     <div>${chartSection}</div>
     <p style="font-size: 1em;"><b>You’ve already done the hard part — you started. Now, keep going.</b></p>
