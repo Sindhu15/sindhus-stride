@@ -153,7 +153,7 @@ async function enqueueRender({ athlete, season }) {
       const outPath = path.join(reelsDir, id + ".mp4");
       await stitchMp4({
         framesDir,
-        audioPath: path.join(__dirname, "..", "public", "assets", "music", "theme.mp3"),
+        audioPath: path.join(__dirname, "..", "assets", "music", "theme.mp3"),
         outPath,
       });
       job.progress = 95;
@@ -265,7 +265,7 @@ async function renderFrames({ framesDir, athlete, season, computed }) {
   const fps = 6;
   const dur = { intro: 18, totals: 24, prs: 27, progress: 30, outro: 36 }; // frames per card
   // Asset roots
-    const wiproRoot = path.join(__dirname, "..", "public", "assets", "wipro");
+    const wiproRoot = path.join(__dirname, "..", "assets", "wipro");
 
     // Build a pool of photos only from days the user actually ran (Sun/Thu in IST)
 const sessionDates = [
@@ -472,7 +472,7 @@ console.log("[reels] Random BGs:", { introBg, totalsBg, progressBg, outroBg });
     drawHeader(ctx, "SIS-Wipro-12-Week Journey", dateLine);
     ctx.fillStyle = fg; ctx.font = "700 64px Sans"; ctx.fillText(seasonTitle, 64, 380);
     ctx.globalAlpha = Math.min(1, i / 6);
-    ctx.font = "600 48px Sans"; ctx.fillStyle = sub; ctx.fillText("Built by Uplift", 64, 460);
+    // ctx.font = "600 48px Sans"; ctx.fillStyle = sub; ctx.fillText("Built by Uplift", 64, 460);
     ctx.globalAlpha = 1;
     save(c);
   }
@@ -706,7 +706,7 @@ for (let i = 0; i < dur.outro; i++) {
     await drawCover(ctx, i, dur.outro, outroBg);
   }
 
-  drawHeader(ctx, "Sisters In Sweat");
+  // drawHeader(ctx, "Sisters In Sweat", '<3');
 
   // NEW: session count badges (top-right)
   const badgeX = width - 64 - 300; // 64px right margin, badge is 300px wide
