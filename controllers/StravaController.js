@@ -1,7 +1,9 @@
 const {
   exchangeCodeForToken,
   fetchActivities,
+  getAthleteProfile
 } = require("../services/stravaService");
+
 
 const { getISTTime } = require("../utils/formatUtils");
 const logToGoogleSheet = require("../services/logToGoogleSheet");
@@ -13,41 +15,39 @@ class StravaController {
   }
 
   async callback(ctx) {
+  try {
     const code = ctx.query.code;
-    try {
-      const { access_token, athlete } = await exchangeCodeForToken(code);
-      console.log(`An Athlete has connected at ${getISTTime()}`);
-      await logToGoogleSheet({
-        event: "strava_authorized",
-        athleteId: athlete.id,
-        ctx,
-      });
-      ctx.cookies.set("token", access_token, {
-        httpOnly: true,
-        signed: true,
-        maxAge: 10 * 60 * 1000, // 10 mins
-        secure: process.env.NODE_ENV === "production", // only send on HTTPS
-      });
-      ctx.cookies.set("athlete_id", athlete.id.toString(), {
-        httpOnly: true,
-        signed: true,
-        maxAge: 100 * 60 * 1000, // 10 mins
-        secure: process.env.NODE_ENV === "production",
-      });
-      ctx.redirect("/insight-html");
-    } catch (error) {
-      console.error(
-        "Error exchanging code:",
-        error.response?.data || error.message,
-      );
-      await logToGoogleSheet({
-        event: "error_strava_authorization",
-        athleteId: "error",
-        ctx,
-      });
-      ctx.redirect("/error?message=Error Connecting to Strava");
+    if (!code) {
+      ctx.redirect("/error?message=Missing code");
+      return;
     }
+    // Exchange code -> tokens
+    const { access_token, refresh_token, expires_at, athlete } =
+      await exchangeCodeForToken(code);
+    // Fetch profile (name, avatar); Strava returns athlete too
+    const profile = await getAthleteProfile(access_token).catch(() => ({}));
+
+    // Save minimal athlete + tokens in session
+    ctx.session.athlete = {
+      id: (athlete && athlete.id) || (profile && profile.id),
+      name:
+        (profile && profile.name) ||
+        (athlete && athlete.firstname) ||
+        "Runner",
+      username: (athlete && athlete.username) || null,
+      avatar: (profile && profile.avatar) || (athlete && athlete.profile) || null,
+      access_token,
+      refresh_token,
+      expires_at,
+    };
+
+    // Go to the reel creation gate page
+    ctx.redirect("/reel.html");
+  } catch (e) {
+    console.error("Strava callback error", e);
+    ctx.redirect("/error?message=Auth failed");
   }
+}
 
   async getActivities(ctx) {
     const accessToken = ctx.query.token;

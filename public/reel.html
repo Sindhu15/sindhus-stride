@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Create Reel • SIS Wipro</title>
+<style>
+  :root { --bg:#0f0f10; --fg:#f6f7f9; --sub:#b7bcc7; --pri:#FF6A3D; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter; }
+  .wrap { max-width:900px; margin:40px auto; padding:24px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  p { color:var(--sub); margin:0 0 16px; }
+  .card { background:#15161a; border:1px solid #23242a; border-radius:16px;
+          padding:20px; margin:16px 0; }
+  input[type=password] { width:100%; background:#0f1013; color:var(--fg);
+          border:1px solid #23242a; border-radius:12px; padding:14px 16px; }
+  button { background:var(--pri); color:white; border:none; border-radius:12px;
+          padding:12px 18px; font-weight:700; cursor:pointer; }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  video { width:100%; max-height:70vh; border-radius:16px; background:black; }
+  .hidden{ display:none; }
+  .err{ color:#ff6a6a; }
+  .muted{ color:var(--sub); font-size:14px; }
+  .pill{ background:#1f2025; border:1px solid #2a2b31; padding:6px 10px;
+         border-radius:999px; color:var(--sub); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SIS Wipro — Create Your Reel</h1>
+  <p>Enter the group password to generate your shareable 12-week reel. Private activities are included.</p>
+
+  <div class="card" id="gate-card">
+    <label class="muted">Wipro Password</label>
+    <input id="pwd" type="password" placeholder="Enter password" />
+    <div class="row" style="margin-top:12px">
+      <button id="proceed">Proceed & Create Reel</button>
+      <span id="status" class="pill">Waiting for input</span>
+    </div>
+    <div id="err" class="err" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card hidden" id="preview-card">
+    <div class="row" style="justify-content:space-between;">
+      <strong>Preview</strong>
+      <span id="meta" class="pill"></span>
+    </div>
+    <video id="vid" controls playsinline></video>
+    <div class="row" style="margin-top:12px">
+      <button id="download">Download MP4</button>
+      <button id="share">Share</button>
+      <span class="muted">If Share isn’t supported, we’ll copy the link.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // helpers
+  const $ = (s) => document.querySelector(s);
+  const statusEl = $("#status");
+  const errEl = $("#err");
+  const preview = $("#preview-card");
+  const vid = $("#vid");
+  const meta = $("#meta");
+  const proceedBtn = $("#proceed");
+  const pwdInput = $("#pwd");
+
+  function setStatus(t) { statusEl && (statusEl.textContent = t); }
+  function showErr(msg) { errEl && (errEl.textContent = msg); }
+
+  async function verifyGate(password) {
+    console.log("[gate] POST /gate");
+    const res = await fetch("/gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.error || `Gate failed (${res.status})`);
+    }
+    console.log("[gate] ok");
+    return true;
+  }
+
+  async function createReel() {
+    setStatus("Rendering…");
+    console.log("[reel] POST /reel?block=true");
+    const res = await fetch("/reel?block=true", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}), // dates defaulted server-side
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`/reel failed (${res.status}) ${text}`);
+    }
+    const j = await res.json().catch(() => ({}));
+    if (j.url) return j;
+
+    let jobId = j.job_id;
+    if (!jobId) throw new Error("No job id returned from /reel");
+
+    // poll up to ~60s
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const sRes = await fetch(`/reel/${jobId}/status`);
+      const s = await sRes.json().catch(() => ({}));
+      console.log("[reel] status", s);
+      if (s.status === "ready" && s.url) return s;
+      if (s.status === "failed") throw new Error("Render failed");
+    }
+    throw new Error("Timed out waiting for reel");
+  }
+
+  function attach() {
+    if (!proceedBtn) {
+      console.error("Proceed button not found. Are we on reel.html?");
+      return;
+    }
+    // ensure button doesn't act as submit in some browsers
+    proceedBtn.setAttribute("type", "button");
+
+    proceedBtn.addEventListener("click", async () => {
+      proceedBtn.disabled = true;
+      showErr("");
+      try {
+        console.log("[ui] Proceed clicked");
+        const pwd = (pwdInput && pwdInput.value || "").trim();
+        if (!pwd) {
+          setStatus("Enter password");
+          proceedBtn.disabled = false;
+          return;
+        }
+        setStatus("Verifying…");
+        await verifyGate(pwd);
+
+        const out = await createReel();
+        const dlUrl = out.url || `/reel/${out.job_id}/download`;
+        vid.src = dlUrl;
+        meta.textContent = "Ready";
+        preview.classList.remove("hidden");
+        setStatus("Done");
+
+        // Buttons
+        $("#download").onclick = () => window.open(dlUrl, "_blank");
+        $("#share").onclick = async () => {
+          const url = new URL(dlUrl, window.location.origin).toString();
+          if (navigator.share) {
+            try { await navigator.share({ title: "SIS Wipro Reel", url }); } catch {}
+          } else {
+            try { await navigator.clipboard.writeText(url); alert("Link copied!"); }
+            catch { prompt("Copy this link:", url); }
+          }
+        };
+
+        // autoplay (best effort)
+        vid.play && vid.play().catch(() => {});
+      } catch (e) {
+        console.error(e);
+        showErr(e.message || "Something went wrong");
+        setStatus("Error");
+      } finally {
+        proceedBtn.disabled = false;
+      }
+    });
+
+    console.log("[ui] Handler attached");
+    setStatus("Waiting for input");
+  }
+
+  // attach after DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attach);
+  } else {
+    attach();
+  }
+})();
+</script>
+
+</body>
+</html>
