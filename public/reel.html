@@ -28,8 +28,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>SIS Wipro — Create Your Reel</h1>
-  <p>Enter the group password to generate your shareable 12-week reel.</p>
+  <h1>SIS Wipro — Lets do a flasback</h1>
+  <p>Enter the group password to generate your shareable reel.</p>
 
   <div class="card" id="gate-card">
     <label class="muted">Wipro Password</label>
@@ -39,7 +39,15 @@
       <span id="status" class="pill">Waiting for input</span>
     </div>
     <div id="err" class="err" style="margin-top:8px"></div>
+    <div class="progress-wrap hidden" id="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
   </div>
+
+   <div>
+      The download will take around 2 minutes after you click proceed. 
+      Please do some stretching while you wait!<br/>
+    </div>
 
   <div class="card hidden" id="preview-card">
     <div class="row" style="justify-content:space-between;">
@@ -49,9 +57,8 @@
     <video id="vid" controls playsinline></video>
     <div class="row" style="margin-top:12px">
       <button id="download">Download MP4</button>
-      <button id="share">Share</button>
-      <span class="muted">If Share isn’t supported, we’ll copy the link.</span>
     </div>
+   
   </div>
 </div>
 
@@ -66,6 +73,9 @@
   const meta = $("#meta");
   const proceedBtn = $("#proceed");
   const pwdInput = $("#pwd");
+  const progressWrap = $("#progress-wrap");
+  const progressBar = $("#progress-bar");
+
 
   function setStatus(t) { statusEl && (statusEl.textContent = t); }
   function showErr(msg) { errEl && (errEl.textContent = msg); }
@@ -86,34 +96,104 @@
   }
 
   async function createReel() {
-    setStatus("Rendering…");
-    console.log("[reel] POST /reel?block=true");
-    const res = await fetch("/reel?block=true", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}), // dates defaulted server-side
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`/reel failed (${res.status}) ${text}`);
-    }
-    const j = await res.json().catch(() => ({}));
-    if (j.url) return j;
+  // Optional progress UI
+  const wrap = document.querySelector("#progress-wrap");
+  const bar  = document.querySelector("#progress-bar");
+  if (wrap) wrap.classList.remove("hidden");
+  if (bar)  bar.style.width = "0%";
 
-    let jobId = j.job_id;
-    if (!jobId) throw new Error("No job id returned from /reel");
+  setStatus("Rendering…");
+  console.log("[reel] POST /reel?block=true");
 
-    // poll up to ~60s
-    for (let i = 0; i < 60; i++) {
-      await new Promise((r) => setTimeout(r, 1000));
-      const sRes = await fetch(`/reel/${jobId}/status`);
-      const s = await sRes.json().catch(() => ({}));
-      console.log("[reel] status", s);
-      if (s.status === "ready" && s.url) return s;
-      if (s.status === "failed") throw new Error("Render failed");
-    }
-    throw new Error("Timed out waiting for reel");
+  const res = await fetch("/reel?block=true", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}), // dates defaulted server-side
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`/reel failed (${res.status}) ${text}`);
   }
+
+  const j = await res.json().catch(() => ({}));
+
+  // If server returned final URL right away
+  if (j && j.url) {
+    if (bar) bar.style.width = "100%";
+    setStatus("Rendering… 100%");
+    return j;
+  }
+
+  const jobId = j && (j.job_id || j.jobId);
+  if (!jobId) throw new Error("No job id returned from /reel");
+
+  // Poll status with % updates
+  const maxSeconds = 120;         // up to 2 minutes
+  const intervalMs = 1000;        // poll every 1s
+  const started = Date.now();
+
+  for (;;) {
+    await new Promise(r => setTimeout(r, intervalMs));
+
+    const sRes = await fetch(`/reel/${jobId}/status`);
+    if (!sRes.ok) throw new Error(`Status check failed (${sRes.status})`);
+    const s = await sRes.json().catch(() => ({}));
+
+    const pct = typeof s.progress === "number" ? Math.max(0, Math.min(100, Math.round(s.progress))) : null;
+    const note = s.note ? ` — ${s.note}` : "";
+
+    if (pct != null) {
+      if (bar) bar.style.width = pct + "%";
+      setStatus(`Rendering… ${pct}%${note}`);
+    } else {
+      // fallback when progress is unavailable
+      setStatus(`Rendering…${note}`);
+    }
+
+    if (s.status === "ready" && s.url) {
+      if (bar) bar.style.width = "100%";
+      setStatus("Rendering… 100%");
+      return s;
+    }
+    if (s.status === "failed") {
+      throw new Error("Render failed");
+    }
+
+    if ((Date.now() - started) / 1000 > maxSeconds) {
+      throw new Error("Timed out waiting for reel");
+    }
+  }
+}
+
+
+  async function createReelFast() {
+  setStatus("Rendering (fast)…");
+  const res = await fetch("/api/reels/live", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ /* optional overrides:
+      start: "2025-06-19",
+      end: "2025-09-18",
+      perImageSec: 2.2,
+      fps: 30,
+      onlyGroupDays: true
+    */ }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`/api/reels/live failed (${res.status}) ${text}`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  // Show player or download
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `reel-live-${Date.now()}.mp4`;
+  a.click();
+  setStatus("Done");
+  return { url };
+}
+
 
   function attach() {
     if (!proceedBtn) {
@@ -146,15 +226,15 @@
 
         // Buttons
         $("#download").onclick = () => window.open(dlUrl, "_blank");
-        $("#share").onclick = async () => {
-          const url = new URL(dlUrl, window.location.origin).toString();
-          if (navigator.share) {
-            try { await navigator.share({ title: "SIS Wipro Reel", url }); } catch {}
-          } else {
-            try { await navigator.clipboard.writeText(url); alert("Link copied!"); }
-            catch { prompt("Copy this link:", url); }
-          }
-        };
+        // $("#share").onclick = async () => {
+        //   const url = new URL(dlUrl, window.location.origin).toString();
+        //   if (navigator.share) {
+        //     try { await navigator.share({ title: "SIS Wipro Reel", url }); } catch {}
+        //   } else {
+        //     try { await navigator.clipboard.writeText(url); alert("Link copied!"); }
+        //     catch { prompt("Copy this link:", url); }
+        //   }
+        // };
 
         // autoplay (best effort)
         vid.play && vid.play().catch(() => {});

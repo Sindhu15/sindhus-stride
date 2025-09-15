@@ -47,9 +47,8 @@ class HomeController {
             </div>
             <img src="./images/powered-by-strava.svg" alt="Powered by Strava" style="width: 120px;" />
           <div style="background: #fffbe6; border-radius: 12px; padding: 2rem; margin: 2rem auto; max-width: 600px;box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);">
-          <p>See how far you’ve come in your running journey. Your runs have a story. Let’s tell it.</p>
-          <p>Authorize with Strava and get a personalized progress report you can share with friends or your coach!</p>
-          <p>This is a fun, privacy-first app. I don’t store any of your personal info or Strava data. It’s all about you and your journey.</p>
+          <p>Lets look back at your wipro runs</p>
+          <p>Authorize with Strava and get a personalized fun reel you can share with friends or your coach!</p>
           <p>🙌 Good vibes only ❤️💪😊</p>
           </div>
           <a href="/auth/strava">

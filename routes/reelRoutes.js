@@ -11,5 +11,5 @@ router.post("/:jobId/one-shot", (ctx) => reelController.issueOneShot(ctx));
 router.get("/one-shot/:token", (ctx) => reelController.oneShotDownload(ctx));
 
 router.get("/:jobId/download", reelController.download.bind(reelController))
-
+router.post("/live", reelController.live.bind(reelController));
 module.exports = router;
