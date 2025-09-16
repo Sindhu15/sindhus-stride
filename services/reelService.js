@@ -307,7 +307,7 @@ async function renderFrames({ framesDir, athlete, season, activities, computed, 
   const width = 1080, height = 1920;
   const themePrimary = "#FF6A3D";
   const bg = "#0f0f10", fg = "#f6f7f9", sub = "#b7bcc7";
-  const username = athlete && (athlete.username || athlete.name) ? `— ${athlete.username || athlete.name}` : "";
+  const username = athlete && (athlete.username || athlete.name) ? `${athlete.username || athlete.name}` : "";
   const dateLine = `${season?.start || DEFAULT_SEASON.start} → ${season?.end || DEFAULT_SEASON.end}`;
 
   const fps = 6;
@@ -347,18 +347,31 @@ async function renderFrames({ framesDir, athlete, season, activities, computed, 
   const preferredPool = sessionPhotoPool.length ? sessionPhotoPool : availablePhotos;
 
   // helper: weighted fallback (prefer Cubbon-named files)
-  function pickFallback(preferList = []) {
-    const pool = (preferList.length ? preferList : availablePhotos).filter(isImageFile);
-    if (!pool.length) return null;
-    // score: +2 if filename contains "cubbon"
-    let best = pool[0], bestScore = containsCubbon(pool[0]) ? 2 : 0;
-    for (let i = 1; i < pool.length; i++) {
-      const p = pool[i];
-      const score = containsCubbon(p) ? 2 : 1;
-      if (score > bestScore) { best = p; bestScore = score; }
-    }
-    return best;
+  // helper: weighted fallback (prefer Cubbon & session photos)
+function pickFallback(preferList = []) {
+  const basePool = preferList.length ? preferList : availablePhotos;
+  const pool = basePool.filter(isImageFile);
+  if (!pool.length) return null;
+
+  function scorePath(p, isPrefer) {
+    let s = 1;
+    if (containsCubbon(p)) s += 2;
+    if (isPrefer) s += 1;
+    return s;
   }
+
+  // score all, keep top
+  const scored = pool.map(p => ({
+    path: p,
+    score: scorePath(p, preferList.includes(p)),
+  }));
+  const maxScore = Math.max(...scored.map(s => s.score));
+  const candidates = scored.filter(s => s.score === maxScore);
+
+  // pick randomly among top candidates to avoid repetition
+  return candidates[Math.floor(Math.random() * candidates.length)].path;
+}
+
 
   // sanity logs
   try {
@@ -375,8 +388,8 @@ async function renderFrames({ framesDir, athlete, season, activities, computed, 
     ctx.font = "900 72px Sans";
     ctx.fillText(title, 64, 200);
     ctx.fillStyle = sub;
-    ctx.font = "500 40px Sans";
-    ctx.fillText(subtitle, 64, 260);
+    ctx.font = "800 64px Sans";
+    ctx.fillText(subtitle, 64, 280);
   }
   function drawBadge(ctx, label, value, x, y) {
     ctx.fillStyle = "#1a1b1f";
@@ -450,7 +463,8 @@ const introExact = earliestSessionDateMs ? resolvePhotoPathForISTDate(WIPRO_DIR,
 const introBg = introExact || (preferredPool.length ? preferredPool[0] : null);
 
 // -------- Card: Intro --------
-const INTRO_TITLE = "My Wipro run prep";
+const INTRO_TITLE = `${username}'s`;
+const INTRO_TEXT = 'Wipro run prep';
 const INTRO_SUB   = "19th June to September 18th";
 for (let i = 0; i < dur.intro; i++) {
   const c = createCanvas(width, height); const ctx = c.getContext("2d");
@@ -458,18 +472,22 @@ for (let i = 0; i < dur.intro; i++) {
 
   // Big title
   ctx.fillStyle = fg;
-  ctx.font = "900 84px Sans";
-  ctx.fillText(INTRO_TITLE, 64, 360);
+  ctx.font = "900 75px Sans";
+  ctx.fillText(INTRO_TITLE, 64, 320);
 
-  // Subtitle (fixed string, per request)
-  ctx.fillStyle = sub;
-  ctx.font = "600 48px Sans";
-  ctx.fillText(INTRO_SUB, 64, 430);
+  ctx.fillStyle = fg;
+  ctx.font = "800 75px Sans";
+  ctx.fillText(INTRO_TEXT, 64, 400);
+
+  // // Subtitle (fixed string, per request)
+  // ctx.fillStyle = sub;
+  // ctx.font = "700 65px Sans";
+  // ctx.fillText(INTRO_SUB, 64, 430);
 
   // Optional bottom brand strip
   ctx.fillStyle = "rgba(0,0,0,0.22)";
   ctx.fillRect(0, height - 180, width, 180);
-  ctx.fillStyle = fg; ctx.font = "700 40px Sans";
+  ctx.fillStyle = fg; ctx.font = "400 40px Sans";
   ctx.fillText("Built by Uplift — Powered by Strava", 64, height - 100);
 
   save(c);
@@ -487,6 +505,12 @@ for (let i = 0; i < dur.intro; i++) {
     drawBadge(ctx, "Distance", `${computed.totals.km} km`, 64 + (1 - t) * -80, baseY);
     drawBadge(ctx, "Runs", `${computed.totals.runs}`, 404 + (1 - t) * 80, baseY);
     drawBadge(ctx, "Hours", `${computed.totals.hours}`, 744 + (1 - t) * -80, baseY);
+
+    // Optional bottom brand strip
+  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  ctx.fillRect(0, height - 180, width, 180);
+  ctx.fillStyle = fg; ctx.font = "400 40px Sans";
+  ctx.fillText("Built by Uplift — Powered by Strava", 64, height - 100);
     save(c);
   }
 
@@ -501,6 +525,13 @@ for (let i = 0; i < dur.intro; i++) {
       drawHeader(ctx, "☀️ Best Sunday Run", sunday?.dateMs ? formatReadableDateIST(sunday.dateMs) : "—");
       ctx.fillStyle = fg; ctx.font = "800 64px Sans";
       ctx.fillText(sunday ? `${sunday.km} km @ ${sunday.pace}` : "—", 64, 520);
+
+      // Optional bottom brand strip
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.fillRect(0, height - 180, width, 180);
+      ctx.fillStyle = fg; ctx.font = "400 40px Sans";
+      ctx.fillText("Built by Uplift — Powered by Strava", 64, height - 100);
+
       save(c);
     }
   }
@@ -516,6 +547,13 @@ for (let i = 0; i < dur.intro; i++) {
       drawHeader(ctx, "🏅 Best Thursday Intervals", thurs?.dateMs ? formatReadableDateIST(thurs.dateMs) : "—");
       ctx.fillStyle = fg; ctx.font = "800 64px Sans";
       ctx.fillText(thurs ? `${thurs.km} km @ ${thurs.pace}` : "—", 64, 520);
+
+      // Optional bottom brand strip
+  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  ctx.fillRect(0, height - 180, width, 180);
+  ctx.fillStyle = fg; ctx.font = "400 40px Sans";
+  ctx.fillText("Built by Uplift — Powered by Strava", 64, height - 100);
+
       save(c);
     }
   }
@@ -550,8 +588,11 @@ for (let i = 0; i < dur.intro; i++) {
       await drawCover(ctx, i, dur.outro, pickFallback(preferredPool));
     }
 
-    ctx.fillStyle = sub; ctx.font = "600 40px Sans";
-    ctx.fillText("Built by Uplift — Powered by Strava", 64, height - 120);
+    // Optional bottom brand strip
+  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  ctx.fillRect(0, height - 180, width, 180);
+  ctx.fillStyle = fg; ctx.font = "400 40px Sans";
+  ctx.fillText("Built by Uplift — Powered by Strava", 64, height - 100);
 
     save(c);
   }
