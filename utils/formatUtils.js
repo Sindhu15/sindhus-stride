@@ -227,19 +227,19 @@ function getMileStoneTable(firstRun, longestRun, fastestRun, recentRun) {
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(firstRun.moving_time, firstRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(firstRun.moving_time)}</td>
         </tr>
-         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">Recent</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(recentRun.start_date)}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${(recentRun.distance / 1000).toFixed(1)} km</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(recentRun.moving_time, recentRun.distance)} min/km</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(recentRun.moving_time)}</td>
-        </tr>
         <tr>
           <td style="border: 1px solid #ddd; padding: 8px;">Longest</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(longestRun.start_date)}</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${(longestRun.distance / 1000).toFixed(1)} km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(longestRun.moving_time, longestRun.distance)} min/km</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(longestRun.moving_time)}</td>
+        </tr>
+         <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">Recent</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(recentRun.start_date)}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${(recentRun.distance / 1000).toFixed(1)} km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatPace(recentRun.moving_time, recentRun.distance)} min/km</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formatTime(recentRun.moving_time)}</td>
         </tr>
         <tr>
           <td style="border: 1px solid #ddd; padding: 8px;">Fastest</td>
