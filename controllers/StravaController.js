@@ -8,14 +8,30 @@ const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 class StravaController {
   async authRedirect(ctx) {
-    const redirectUri = `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${process.env.STRAVA_REDIRECT_URI}&approval_prompt=force&scope=read,activity:read_all`;
+    // const redirectUri = `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${process.env.STRAVA_REDIRECT_URI}&approval_prompt=force&scope=read,activity:read_all`;
+  const redirectUri =
+  `https://www.strava.com/oauth/authorize` +
+  `?client_id=${process.env.STRAVA_CLIENT_ID}` +
+  `&response_type=code` +
+  `&redirect_uri=${encodeURIComponent(process.env.STRAVA_REDIRECT_URI)}` +
+  `&approval_prompt=force` +
+  `&scope=${encodeURIComponent("read,activity:read_all")}`;
     ctx.redirect(redirectUri);
   }
 
   async callback(ctx) {
     const code = ctx.query.code;
     try {
-      const { access_token, athlete } = await exchangeCodeForToken(code);
+      const tokenData = await exchangeCodeForToken(code);
+      console.log("STRAVA AUTH:", {
+        scope: tokenData.scope,
+        expires_at: tokenData.expires_at,
+        athleteId: tokenData.athlete?.id,
+        hasAccessToken: !!tokenData.access_token,
+        hasRefreshToken: !!tokenData.refresh_token,
+      });
+
+      const { access_token, athlete } = tokenData;
       console.log(`An Athlete has connected at ${getISTTime()}`);
       await logToGoogleSheet({
         event: "strava_authorized",
