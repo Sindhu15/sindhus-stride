@@ -8,7 +8,7 @@ const logToGoogleSheet = require("../services/logToGoogleSheet");
 
 class StravaController {
   async authRedirect(ctx) {
-    const redirectUri = `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${process.env.STRAVA_REDIRECT_URI}&approval_prompt=force&scope=activity:read`;
+    const redirectUri = `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${process.env.STRAVA_REDIRECT_URI}&approval_prompt=force&scope=read,activity:read_all`;
     ctx.redirect(redirectUri);
   }
 
